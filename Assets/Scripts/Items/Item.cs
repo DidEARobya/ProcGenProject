@@ -11,7 +11,7 @@ public class Item : MonoBehaviour
 
     private ChunkLoader chunkLoader;
 
-    private float lifeSpan = 300f;
+    private float lifeSpan = 10f;
     private float pickUpRadius = 2f;
 
     private int blockIndex;
@@ -38,6 +38,8 @@ public class Item : MonoBehaviour
         renderer.sprite = sprite;
 
         originalPos = animationObject.transform.localPosition;
+
+        WorldManager.instance.items.Add(this);
     }
 
     private void Update()
@@ -57,8 +59,9 @@ public class Item : MonoBehaviour
 
         if(distance.magnitude < pickUpRadius)
         {
-            if(player.toolbar.AddItem(blockIndex) == true)
+            if(player.toolbar.AddItem(blockIndex, 1) == true)
             {
+                WorldManager.instance.items.Remove(this);
                 Destroy(gameObject);
             }
         }
@@ -108,6 +111,7 @@ public class Item : MonoBehaviour
         {
             WorldManager.instance.items.Remove(this);
             Destroy(gameObject);
+            return;
         }
     }
 }

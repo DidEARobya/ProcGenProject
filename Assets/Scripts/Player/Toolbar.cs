@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using TMPro;
 using Unity.Loading;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
 
 public class Toolbar : MonoBehaviour
 {
@@ -49,63 +51,108 @@ public class Toolbar : MonoBehaviour
 
     private void CreativeMode()
     {
-        AddItem(1);
-        AddItem(2);
-        AddItem(3);
-        AddItem(4);
+        AddItem(1, 1);
+        AddItem(2, 1);
+        AddItem(3, 1);
+        AddItem(4, 1);
     }
-    public bool AddItem(int item)
+    public bool AddItem(int item, int amount)
     {
-        bool added = false;
-        int slotIndex = 0;
+        TextMeshProUGUI amountText = null;
+        int current;
+        bool isParsed;
 
-        for(int i = 0; i < slots.Length - 1; i++)
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (itemIndex[i] == item)
+            {
+                amountText = slots[i].transform.Find("Amount").GetComponent<TextMeshProUGUI>();
+
+                isParsed = int.TryParse(amountText.text, out current);
+
+                if (isParsed == true && current < worldManager.blockData[item].stackSize)
+                {
+                    current += amount;
+                    amountText.text = current.ToString();
+
+                    return true;
+                }
+
+            }
+        }
+
+        for(int i = 0; i < slots.Length; i++)
         {
             if (itemIndex[i] == 0)
             {
                 itemIndex[i] = item;
-                slotIndex = i;
-                added = true;
 
-                break;
+                amountText = slots[i].transform.Find("Amount").GetComponent<TextMeshProUGUI>();
+
+                current = amount;
+                amountText.text = current.ToString();
+
+                slots[i].GetComponent<UnityEngine.UI.Image>().sprite = worldManager.blockData[item].displayImage;
+
+                return true;
             }
         }
 
-        if(added == false)
-        {
-            return false;
-        }
-
-        slots[slotIndex].GetComponent<Image>().sprite = worldManager.blockData[item].displayImage;
-
-        return true;
+        return false;
     }
 
-    public void RemoveItem(int item)
+    public void RemoveItem(int item, int amount)
     {
         if (item == 0)
         {
             return;
         }
 
-        for(int i = 0; i < itemIndex.Length; i++)
+        for (int i = 0; i < itemIndex.Length; i++)
         {
             if (itemIndex[i] == item)
             {
-                itemIndex[i] = 0;
-                slots[i].GetComponent<Image>().sprite = emptySlot;
+                TextMeshProUGUI text = slots[i].transform.Find("Amount").GetComponent<TextMeshProUGUI>();
+
+                int current = int.Parse(text.text);
+
+                if (current - amount <= 0)
+                {
+                    itemIndex[i] = 0;
+                    slots[i].GetComponent<UnityEngine.UI.Image>().sprite = emptySlot;
+                    text.text = " ";
+                }
+                else
+                {
+                    text.text = (current - amount).ToString();
+                }
+
+                break;
             }
         }
     }
-    public void RemoveItemAtSlot(int slot)
+
+    public void RemoveItemAtSlot(int slot, int amount)
     {
         if (slot == 0 || itemIndex[slot - 1] == 0)
         {
             return;
         }
 
-        itemIndex[slot - 1] = 0;
-        slots[slot - 1].GetComponent<Image>().sprite = emptySlot;
+        TextMeshProUGUI text = slots[slot - 1].transform.Find("Amount").GetComponent<TextMeshProUGUI>();
+
+        int current = int.Parse(text.text);
+
+        if (current - amount <= 0)
+        {
+            itemIndex[slot - 1] = 0;
+            slots[slot - 1].GetComponent<UnityEngine.UI.Image>().sprite = emptySlot;
+            text.text = " ";
+        }
+        else
+        {
+            text.text = (current - amount).ToString();
+        }
     }
 
     private void OnGUI()
@@ -127,7 +174,7 @@ public class Toolbar : MonoBehaviour
             switch(keyPressed)
             {
                 case KeyCode.G:
-                    RemoveItemAtSlot(currentBlockIndex);
+                    RemoveItemAtSlot(currentBlockIndex, 1);
                     break;
                 case KeyCode.H:
                     CreativeMode();
@@ -173,6 +220,7 @@ public class Toolbar : MonoBehaviour
             }
 
             currentBlockIndex = selectedBlockIndex;
+            playerController.toolbarIndex = currentBlockIndex;
 
             slots[currentBlockIndex - 1].transform.Find("Border").gameObject.SetActive(true);
         }

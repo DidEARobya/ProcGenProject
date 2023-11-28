@@ -10,6 +10,7 @@ public class BlockData
     public bool isSolid;
 
     public Sprite displayImage;
+    public int stackSize;
 
     [Header("Texture Values")]
     public int backFaceTexture;

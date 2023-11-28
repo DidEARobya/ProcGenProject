@@ -12,6 +12,8 @@ public class WorldManager : MonoBehaviour
 
     public static float gravity = -13f;
 
+    float[,] noiseMap;
+
     [SerializeField]
     public BlockData[] blockData;
 
@@ -25,6 +27,7 @@ public class WorldManager : MonoBehaviour
     public float persistence = 0.5f;
     public int octaves = 8;
     public int seed = 32;
+    public int seedOffset = 0;
 
     public int chunkWidth = 16;
     public int chunkHeight = 64;
@@ -45,7 +48,7 @@ public class WorldManager : MonoBehaviour
         }
 
         //GenerateNoise(worldSizeInVoxels, worldSizeInVoxels, scale, lacunarity, persistence, octaves, seed, seedOffset);
-        spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight + 5f, (worldSizeInChunks / 2f) * chunkWidth);
+        spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
 
         maxHeight = float.MinValue;
         minHeight = float.MaxValue;
@@ -58,11 +61,15 @@ public class WorldManager : MonoBehaviour
             return;
         }
 
-        for(int i  = 0; i < items.Count; i++)
+        if(items.Count > 0)
         {
-            items[i].TickLifeSpan(Time.deltaTime);
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i].TickLifeSpan(Time.deltaTime);
+            }
         }
     }
+
     public float Get2DPerlin(Vector2 position, float scale, int offset)
     {
         float seedVal = GenerateSeedValue(seed, offset);
@@ -104,7 +111,7 @@ public class WorldManager : MonoBehaviour
         {
             maxHeight = val;
         }
-        else if(val < minHeight)
+        else// if(val < minHeight)
         {
             minHeight = val;
         }

@@ -96,8 +96,8 @@ public class Chunk
         mesh.triangles = tris.ToArray();
         mesh.uv = uvs.ToArray();
 
-        meshFilter.sharedMesh = mesh;
         mesh.RecalculateNormals();
+        meshFilter.mesh = mesh;
     }
 
     protected void PopulateVoxelMap()
@@ -145,11 +145,7 @@ public class Chunk
     {
         for (int i = 0; i < 6; i++)
         {
-            if (CheckVoxel(pos + VoxelData.faceChecks[i]) == true)
-            {
-
-            }
-            else
+            if (CheckVoxel(pos + VoxelData.faceChecks[i]) == false)
             {
                 int blockID = voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
 
@@ -169,7 +165,6 @@ public class Chunk
 
                 vIndex += 4;
             }
-
         }
     }
 
@@ -199,7 +194,7 @@ public class Chunk
         return true;
     }
 
-    public void EditVoxel(Vector3 pos, int data)
+    public bool EditVoxel(Vector3 pos, int data)
     {
         int x = Mathf.FloorToInt(pos.x);
         int y = Mathf.FloorToInt(pos.y);
@@ -207,7 +202,7 @@ public class Chunk
 
         if(y > height - 1)
         {
-            return;
+            return false;
         }
 
         Vector3 itemPos = new Vector3(x, y, z);
@@ -230,6 +225,8 @@ public class Chunk
 
         UpdateSurroundingVoxels(x, y, z);
         UpdateChunk();
+
+        return true;
     }
 
     private void SpawnItem(int blockID, Vector3 pos)

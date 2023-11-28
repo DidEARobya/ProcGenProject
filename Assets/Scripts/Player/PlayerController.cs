@@ -14,8 +14,15 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     public Transform highlightBlock;
+    [SerializeField]
+    public HealthBar healthBar;
+
+    private delegate void HealthUpdate(float diff);
+    private HealthUpdate healthUpdate;
 
     protected Vector3 placeBlockPos;
+
+    private float health = 10;
 
     [SerializeField]
     public float walkSpeed = 3f;
@@ -25,6 +32,8 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 5f;
     [SerializeField]
     public float reach = 8;
+
+    private float fallDmgMulti = 0.5f;
 
     private float gravity;
 
@@ -37,6 +46,8 @@ public class PlayerController : MonoBehaviour
     private float yaw = 0;
     private float pitch = 0;
 
+    private float fallingFrom;
+
     private Vector3 velocity;
     private float verticalMomentum;
 
@@ -45,12 +56,16 @@ public class PlayerController : MonoBehaviour
     public float checkIncrement;
 
     [HideInInspector]
-    public int selectedBlockIndex = 1;
+    public int selectedBlockIndex = 0;
+    [HideInInspector]
+    public int toolbarIndex = 0;
 
     public bool isGrounded;
     public bool isSprinting;
 
     private bool toJump;
+    private bool toPlace;
+    private bool toDestroy; //temp bool
     private void Start()
     {
         cameraTransform = Camera.main.transform;
@@ -61,10 +76,18 @@ public class PlayerController : MonoBehaviour
 
         isSprinting = false;
         isGrounded = false;
+
         toJump = false;
+        toPlace = true;
+        toDestroy = true;
+
+        fallingFrom = 0;
+
+        healthUpdate = UpdateHealth;
     }
     private void Update()
     {
+        FallingLogic();
         Inputs();
         UpdateInteractPos();
 
@@ -84,6 +107,37 @@ public class PlayerController : MonoBehaviour
         transform.Translate(velocity, Space.World);
     }
 
+    private void UpdateHealth(float diff)
+    {
+        healthBar.UpdateHealthBar(diff);
+    }
+    private void FallingLogic()
+    {
+        if (isGrounded == false)
+        {
+            if(fallingFrom == 0)
+            {
+                fallingFrom = transform.position.y;
+            }
+        }
+        else
+        {
+            if (fallingFrom != 0)
+            {
+                float difference = fallingFrom - transform.position.y;
+
+                int temp = Mathf.FloorToInt(difference / 4);
+
+                if(difference > 0)
+                {
+                    healthUpdate(-(temp * fallDmgMulti));
+                }
+
+                fallingFrom = 0;
+            }
+        }
+
+    }
     private void UpdateInteractPos()
     {
         float step = checkIncrement;
@@ -179,9 +233,10 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if(Input.GetMouseButtonDown(0))
+        if(toDestroy == true && Input.GetMouseButton(0))
         {
-            chunkLoader.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
+            toDestroy = false;
+            Invoke("DestroyBlock", 0.25f);
         }
 
         if(selectedBlockIndex == 0)
@@ -189,30 +244,47 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (toPlace == true && Input.GetMouseButton(1))
         {
-            int blockX = Mathf.FloorToInt(placeBlockPos.x);
-            int playerX = Mathf.FloorToInt(transform.position.x);
-
-            int blockZ = Mathf.FloorToInt(placeBlockPos.z);
-            int playerZ = Mathf.FloorToInt(transform.position.z);
-
-            if(blockX == playerX && blockZ == playerZ)
-            {
-                int blockY = Mathf.FloorToInt(placeBlockPos.y);
-                int playerY = Mathf.FloorToInt(transform.position.y);
-
-                if (blockY == playerY || blockY == playerY - 1)
-                {
-                    return;
-                }
-            }
-
-            chunkLoader.GetChunkFromVector3(placeBlockPos).EditVoxel(placeBlockPos, selectedBlockIndex);
-            toolbar.RemoveItem(selectedBlockIndex);
+            toPlace = false;
+            Invoke("PlaceBlock", 0.25f);
         }
     }
 
+    private void DestroyBlock()
+    {
+        chunkLoader.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
+        toDestroy = true;
+    }
+    private void PlaceBlock()
+    {
+        int blockX = Mathf.FloorToInt(placeBlockPos.x);
+        int playerX = Mathf.FloorToInt(transform.position.x);
+
+        int blockZ = Mathf.FloorToInt(placeBlockPos.z);
+        int playerZ = Mathf.FloorToInt(transform.position.z);
+
+        if (blockX == playerX && blockZ == playerZ)
+        {
+            int blockY = Mathf.FloorToInt(placeBlockPos.y);
+            int playerY = Mathf.FloorToInt(transform.position.y);
+
+            if (blockY == playerY || blockY == playerY - 1)
+            {
+                toPlace = true;
+                return;
+            }
+        }
+
+        bool isPlaced = chunkLoader.GetChunkFromVector3(placeBlockPos).EditVoxel(placeBlockPos, selectedBlockIndex);
+
+        if (isPlaced == true)
+        {
+            toolbar.RemoveItemAtSlot(toolbarIndex, 1);
+        }
+
+        toPlace = true;
+    }
     private void Jump()
     {
         verticalMomentum = jumpForce;
