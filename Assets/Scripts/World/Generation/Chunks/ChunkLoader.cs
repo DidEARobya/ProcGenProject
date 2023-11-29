@@ -1,15 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
 using System.Threading;
-using System.Runtime.CompilerServices;
-using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.TerrainTools;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
-using static UnityEngine.UI.Image;
+
 
 public class ChunkLoader : MonoBehaviour
 {
@@ -65,8 +58,6 @@ public class ChunkLoader : MonoBehaviour
 
         if(worldManager.enableThreading == true)
         {
-            Debug.Log("Threading");
-
             chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
             chunkUpdateThread.Start();
         }
@@ -150,8 +141,14 @@ public class ChunkLoader : MonoBehaviour
                 if (toUpdate[index].isEditable == true)
                 {
                     toUpdate[index].UpdateChunk();
+
+                    if (activeChunks.Contains(toUpdate[index].mapPosition) == false)
+                    {
+                        activeChunks.Add(toUpdate[index].mapPosition);
+                    }
+
                     toUpdate.RemoveAt(index);
-                    activeChunks.Add(toUpdate[index].mapPosition);
+
                     updated = true;
                 }
                 else
@@ -237,12 +234,14 @@ public class ChunkLoader : MonoBehaviour
         {
             for (int z = chunkVector.z - viewDistance; z < chunkVector.z + viewDistance; z++)
             {
-                if(IsChunkInWorld(new ChunkVector(x, z)))
+                ChunkVector temp = new ChunkVector(x, z);
+
+                if (IsChunkInWorld(temp))
                 {
                     if (chunks[x, z] == null)
                     {
-                        chunks[x,z] = new Chunk(this, new ChunkVector(x, z), chunkWidth, chunkHeight);
-                        toCreate.Add(new ChunkVector(x, z));
+                        chunks[x,z] = new Chunk(this, temp, chunkWidth, chunkHeight);
+                        toCreate.Add(temp);
                     }
                     else
                     {
@@ -252,14 +251,15 @@ public class ChunkLoader : MonoBehaviour
                         }
                     }
 
-                    activeChunks.Add(new ChunkVector(x, z));
+                    activeChunks.Add(temp);
                 }
 
                 for(int i = 0; i < lastActive.Count; i++)
                 {
-                    if (lastActive[i].Equals(new ChunkVector(x, z)))
+                    if (lastActive[i].Equals(temp))
                     {
                         lastActive.RemoveAt(i);
+                        i--;
                     }
                 }
             }

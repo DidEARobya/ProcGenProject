@@ -53,6 +53,8 @@ public class DebugScreen : MonoBehaviour
 
         string debugText = "Debugging...";
         debugText += "\n\n";
+        debugText += "Threading: " + worldManager.enableThreading.ToString();
+        debugText += "\n";
         debugText += frameRate.ToString() + " fps";
         debugText += "\n\n";
         debugText += "XYZ: " + Mathf.FloorToInt((worldManager.player.transform.position.x) - halfWorldSizeInVoxels) + "," + Mathf.FloorToInt(worldManager.player.transform.position.y) + "," + Mathf.FloorToInt((worldManager.player.transform.position.z) - halfWorldSizeInVoxels);

@@ -208,6 +208,11 @@ public class PlayerController : MonoBehaviour
     }
     private void Inputs()
     {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
         horizontal = Input.GetAxis("Horizontal");
         vertical = Input.GetAxis("Vertical");
 
