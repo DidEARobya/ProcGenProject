@@ -11,6 +11,7 @@ public class DebugScreen : MonoBehaviour
 
     [SerializeField]
     public TextMeshProUGUI text;
+    private GameObject textObject;
 
     float frameRate;
     float timer;
@@ -26,11 +27,29 @@ public class DebugScreen : MonoBehaviour
 
         halfWorldSizeInChunks = worldManager.worldSizeInChunks / 2;
         halfWorldSizeInVoxels = worldManager.worldSizeInVoxels / 2;
+
+        textObject = text.gameObject;
     }
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            textObject.SetActive(!textObject.activeSelf);
+        }
+
         timer += Time.deltaTime;
+
+        if (timer > 1)
+        {
+            frameRate = (int)(1f / Time.unscaledDeltaTime);
+            timer = 0;
+        }
+
+        if (textObject.activeSelf == false)
+        {
+            return;
+        }
 
         string debugText = "Debugging...";
         debugText += "\n\n";
@@ -46,11 +65,5 @@ public class DebugScreen : MonoBehaviour
         }
 
         text.text = debugText;
-
-        if(timer > 1)
-        {
-            frameRate = (int)(1f / Time.unscaledDeltaTime);
-            timer = 0;
-        }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Chunk
@@ -8,12 +9,15 @@ public class Chunk
     public ChunkVector mapPosition;
 
     GameObject chunkObject;
+    public Vector3 position;
 
     MeshFilter meshFilter;
     Renderer meshRenderer;
 
     WorldManager worldManager;
     ChunkLoader chunkLoader;
+
+    public Queue<VoxelMod> modifications = new Queue<VoxelMod>();
 
     protected int width;
     public int Width {  get { return width; } }
@@ -36,23 +40,16 @@ public class Chunk
 
     public int[,,] voxelMap;
     private bool _isActive;
-    public bool isMapPopulated;
+    private bool isMapPopulated;
 
-    public Chunk(ChunkLoader loader, ChunkVector mapPos ,int _width, int _height, bool generateOnLoad)
+    public Chunk(ChunkLoader loader, ChunkVector mapPos ,int _width, int _height)
     {
         mapPosition = mapPos;
         worldManager = WorldManager.instance;
         chunkLoader = loader;
 
-        isActive = true;
-
         width = _width;
         height = _height;
-
-        if(generateOnLoad == true)
-        {
-            Init();
-        }
     }
 
     public void Init()
@@ -62,6 +59,8 @@ public class Chunk
         chunkObject.transform.position = new Vector3(mapPosition.x * width, 0f, mapPosition.z * width);
         chunkObject.name = "Chunk: " + chunkObject.transform.position.x + "_" + chunkObject.transform.position.z;
 
+        position = chunkObject.transform.position;
+
         meshFilter = chunkObject.AddComponent<MeshFilter>();
 
         meshRenderer = chunkObject.AddComponent<MeshRenderer>();
@@ -70,10 +69,18 @@ public class Chunk
         voxelMap = new int[width, height, width];
 
         PopulateVoxelMap();
-        UpdateChunk();
     }
+
     public void UpdateChunk()
     {
+        for (int i = 0; i < modifications.Count; i++)
+        {
+            VoxelMod mod = modifications.Dequeue();
+            Vector3 pos = (mod.position -= position);
+
+            voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = mod.id; 
+        }  
+
         ClearMeshData();
 
         for (int x = 0; x < width; x++)
@@ -90,14 +97,10 @@ public class Chunk
             }
         }
 
-        Mesh mesh = new Mesh();
-
-        mesh.vertices = verts.ToArray();
-        mesh.triangles = tris.ToArray();
-        mesh.uv = uvs.ToArray();
-
-        mesh.RecalculateNormals();
-        meshFilter.mesh = mesh;
+        lock (chunkLoader.toDraw)
+        {
+            chunkLoader.toDraw.Enqueue(this);
+        }
     }
 
     protected void PopulateVoxelMap()
@@ -108,12 +111,17 @@ public class Chunk
             {
                 for (int z = 0; z < width; z++)
                 {
-                    voxelMap[x, y, z] = chunkLoader.GetVoxel(new Vector3(x, y, z) + GetPosition());
+                    voxelMap[x, y, z] = chunkLoader.GetVoxel(new Vector3(x, y, z) + position);
                 }
             }
         }
 
         isMapPopulated = true;
+
+        lock(chunkLoader.updateThreadLock)
+        {
+            chunkLoader.toUpdate.Add(this);
+        }
     }
 
     protected bool CheckVoxel(Vector3 pos)
@@ -124,7 +132,7 @@ public class Chunk
 
         if (isVoxelInChunk(x, y, z) == false)
         {
-            return chunkLoader.CheckForVoxel(pos + GetPosition());
+            return chunkLoader.CheckForVoxel(pos + position);
         }
 
         return WorldManager.instance.blockData[voxelMap[x, y, z]].isSolid;
@@ -136,18 +144,22 @@ public class Chunk
         int y = Mathf.FloorToInt(pos.y);
         int z = Mathf.FloorToInt(pos.z);
 
-        x -= Mathf.FloorToInt(chunkObject.transform.position.x);
-        z -= Mathf.FloorToInt(chunkObject.transform.position.z);
+        x -= Mathf.FloorToInt(position.x);
+        z -= Mathf.FloorToInt(position.z);
 
         return voxelMap[x, y, z];
     }
     protected void AddVoxel(Vector3 pos)
     {
+        int x = Mathf.FloorToInt(pos.x);
+        int y = Mathf.FloorToInt(pos.y);
+        int z = Mathf.FloorToInt(pos.z);
+
         for (int i = 0; i < 6; i++)
         {
             if (CheckVoxel(pos + VoxelData.faceChecks[i]) == false)
             {
-                int blockID = voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
+                int blockID = voxelMap[x, y, z];
 
                 for (int u = 0; u < 4; u++)
                 {
@@ -223,8 +235,11 @@ public class Chunk
             SpawnItem(oldData, itemPos);
         }
 
-        UpdateSurroundingVoxels(x, y, z);
-        UpdateChunk();
+        lock(chunkLoader.updateThreadLock)
+        {
+            chunkLoader.toUpdate.Insert(0, this);
+            UpdateSurroundingVoxels(x, y, z);
+        }
 
         return true;
     }
@@ -248,10 +263,22 @@ public class Chunk
 
             if(isVoxelInChunk((int)temp.x, (int)temp.y, (int)temp.z) == false)
             {
-                chunkLoader.GetChunkFromVector3(temp + GetPosition()).UpdateChunk();
+                chunkLoader.toUpdate.Insert(0, (chunkLoader.GetChunkFromVector3(temp + position)));
             }
         }
     }
+    public void CreateMesh()
+    {
+        Mesh mesh = new Mesh();
+
+        mesh.vertices = verts.ToArray();
+        mesh.triangles = tris.ToArray();
+        mesh.uv = uvs.ToArray();
+
+        mesh.RecalculateNormals();
+        meshFilter.mesh = mesh;
+    }
+
     public void ClearMeshData()
     {
         vIndex = 0;
@@ -272,10 +299,17 @@ public class Chunk
             }
         }
     }
-
-    public Vector3 GetPosition()
+    public bool isEditable
     {
-        return chunkObject.transform.position;
+        get 
+        { 
+            if(isMapPopulated == false)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
 

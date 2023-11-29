@@ -5,16 +5,27 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BiomeData", menuName = "Biomes/Biome Data")]
 public class BiomeData :ScriptableObject
 {
-    [SerializeField]
+
     public string biomeName;
 
-    [SerializeField]
+    [Header("Terrain")]
     public int solidGroundHeight;
-    [SerializeField]
     public int terrainHeight;
-    [SerializeField]
     public float terrainScale;
 
+    [Header("Forest")]
+    public float treeZoneScale;
+    [Range(0.1f, 1f)]
+    public float treeZoneThreshold;
+
+    public float treePlacementScale;
+    [Range(0.1f, 1f)]
+    public float treePlacementThreshold;
+
+    public int minTreeSize;
+    public int maxTreeSize;
+
+    [Header("Lodes")]
     public Lode[] lodes;
 }
 
