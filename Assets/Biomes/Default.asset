@@ -12,10 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec37eec263be9604baafe9bad78e488e, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: 
-  biomeName: Default
+  biomeName: Forest
   solidGroundHeight: 20
   terrainHeight: 48
-  terrainScale: 0.25
+  terrainScale: 0.5
+  treeZoneScale: 1.3
+  treeZoneThreshold: 0.6
+  treePlacementScale: 15
+  treePlacementThreshold: 0.8
+  minTreeSize: 5
+  maxTreeSize: 12
   lodes:
   - nodeName: Cave
     blockID: 0

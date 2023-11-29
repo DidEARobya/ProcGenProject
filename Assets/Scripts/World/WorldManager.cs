@@ -5,6 +5,7 @@ using UnityEngine;
 public class WorldManager : MonoBehaviour
 {
     public static WorldManager instance;
+    public bool enableThreading;
 
     public List<Item> items = new List<Item>();
     public PlayerController player;
@@ -20,12 +21,12 @@ public class WorldManager : MonoBehaviour
     [SerializeField]
     public Material blockMaterial;
 
-    float maxHeight;
-    float minHeight;
+    //float maxHeight;
+    //float minHeight;
 
-    public float lacunarity = 0.246f;
-    public float persistence = 0.5f;
-    public int octaves = 8;
+    //public float lacunarity = 0.246f;
+    //public float persistence = 0.5f;
+    //public int octaves = 8;
     public int seed = 32;
     public int seedOffset = 0;
 
@@ -45,13 +46,14 @@ public class WorldManager : MonoBehaviour
         if(instance == null)
         {
             instance = this;
+
+            spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
+
+            //maxHeight = float.MinValue;
+            //minHeight = float.MaxValue;
         }
 
         //GenerateNoise(worldSizeInVoxels, worldSizeInVoxels, scale, lacunarity, persistence, octaves, seed, seedOffset);
-        spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
-
-        maxHeight = float.MinValue;
-        minHeight = float.MaxValue;
     }
 
     private void Update()

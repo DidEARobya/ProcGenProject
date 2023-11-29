@@ -5,25 +5,30 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    enum MovementState
+    {
+        SNEAKING,
+        WALKING,
+        SPRINTING
+    }
+
+    private PlayerBase playerBase;
+
     private Transform cameraTransform;
+    private Vector3 cameraDefaultPos;
+    private Vector3 cameraSneakPos;
+
     private ChunkLoader chunkLoader;
+
+    [HideInInspector]
     public Toolbar toolbar;
 
     [SerializeField]
-    public GameObject debugScreen;
-
-    [SerializeField]
     public Transform highlightBlock;
-    [SerializeField]
-    public HealthBar healthBar;
-
-    private delegate void HealthUpdate(float diff);
-    private HealthUpdate healthUpdate;
-
     protected Vector3 placeBlockPos;
 
-    private float health = 10;
-
+    [SerializeField]
+    public float sneakSpeed = 1f;
     [SerializeField]
     public float walkSpeed = 3f;
     [SerializeField]
@@ -33,9 +38,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     public float reach = 8;
 
-    private float fallDmgMulti = 0.5f;
+    private MovementState movementState;
 
     private float gravity;
+    private float fallingFrom;
+    private float fallDmgMulti = 0.5f;
 
     public float playerWidthRadius = 0.5f;
     public float playerHeight = 1.8f;
@@ -43,15 +50,12 @@ public class PlayerController : MonoBehaviour
     private float horizontal;
     private float vertical;
 
+    private float sensitivity = 1.0f;
     private float yaw = 0;
     private float pitch = 0;
 
-    private float fallingFrom;
-
     private Vector3 velocity;
     private float verticalMomentum;
-
-    private float sensitivity = 1.0f;
 
     public float checkIncrement;
 
@@ -61,29 +65,31 @@ public class PlayerController : MonoBehaviour
     public int toolbarIndex = 0;
 
     public bool isGrounded;
-    public bool isSprinting;
-
     private bool toJump;
     private bool toPlace;
     private bool toDestroy; //temp bool
+
     private void Start()
     {
+        playerBase = GetComponent<PlayerBase>();
+
         cameraTransform = Camera.main.transform;
+        cameraDefaultPos = cameraTransform.localPosition;
+        cameraSneakPos = cameraDefaultPos + new Vector3(0, -0.1f, 0.3f);
+
         Cursor.lockState = CursorLockMode.Locked;
 
         gravity = WorldManager.gravity;
         chunkLoader = WorldManager.instance.gameObject.GetComponent<ChunkLoader>();
 
-        isSprinting = false;
-        isGrounded = false;
+        movementState = MovementState.WALKING;
 
+        isGrounded = false;
         toJump = false;
         toPlace = true;
         toDestroy = true;
 
         fallingFrom = 0;
-
-        healthUpdate = UpdateHealth;
     }
     private void Update()
     {
@@ -91,8 +97,8 @@ public class PlayerController : MonoBehaviour
         Inputs();
         UpdateInteractPos();
 
-        transform.Rotate(Vector3.up * yaw);
-        cameraTransform.Rotate(Vector3.right * -pitch);
+        transform.eulerAngles += new Vector3(0, yaw, 0);
+        cameraTransform.eulerAngles += new Vector3(-pitch, 0, 0);
     }
 
     private void FixedUpdate()
@@ -107,10 +113,6 @@ public class PlayerController : MonoBehaviour
         transform.Translate(velocity, Space.World);
     }
 
-    private void UpdateHealth(float diff)
-    {
-        healthBar.UpdateHealthBar(diff);
-    }
     private void FallingLogic()
     {
         if (isGrounded == false)
@@ -130,13 +132,12 @@ public class PlayerController : MonoBehaviour
 
                 if(difference > 0)
                 {
-                    healthUpdate(-(temp * fallDmgMulti));
+                    playerBase.healthUpdate(-(temp * fallDmgMulti));
                 }
 
                 fallingFrom = 0;
             }
         }
-
     }
     private void UpdateInteractPos()
     {
@@ -170,13 +171,18 @@ public class PlayerController : MonoBehaviour
             verticalMomentum += Time.fixedDeltaTime * gravity;
         }
 
-        if(isSprinting == true)
+        switch(movementState)
         {
-            velocity = ((transform.forward * vertical) + (transform.right * horizontal)).normalized * Time.fixedDeltaTime * sprintSpeed;
-        }
-        else
-        {
-            velocity = ((transform.forward * vertical) + (transform.right * horizontal)) * Time.fixedDeltaTime * walkSpeed;
+            case MovementState.SNEAKING:
+                velocity = ((transform.forward * vertical) + (transform.right * horizontal)).normalized * Time.fixedDeltaTime * sneakSpeed;
+                SneakCheck();
+                break;
+            case MovementState.WALKING:
+                velocity = ((transform.forward * vertical) + (transform.right * horizontal)) * Time.fixedDeltaTime * walkSpeed;
+                break;
+            case MovementState.SPRINTING:
+                velocity = ((transform.forward * vertical) + (transform.right * horizontal)).normalized * Time.fixedDeltaTime * sprintSpeed;
+                break;
         }
 
         if ((velocity.z > 0 && front == true) || (velocity.z < 0 && back == true))
@@ -209,39 +215,45 @@ public class PlayerController : MonoBehaviour
         pitch = sensitivity * Input.GetAxis("Mouse Y");
         pitch = Mathf.Clamp(pitch, -90, 90);
 
-        if(Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            isSprinting = true;
+            movementState = MovementState.SPRINTING;
         }
         if (Input.GetKeyUp(KeyCode.LeftShift))
         {
-            isSprinting = false;
+            movementState= MovementState.WALKING;
         }
 
-        if(isGrounded == true && Input.GetKey(KeyCode.Space))
+        if(Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            movementState = MovementState.SNEAKING;
+            cameraTransform.localPosition = cameraSneakPos;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            movementState = MovementState.WALKING;
+            cameraTransform.localPosition = cameraDefaultPos;
+        }
+
+        if (isGrounded == true && Input.GetKey(KeyCode.Space))
         {
             toJump = true;
         }
 
-        if(Input.GetKeyDown(KeyCode.F3))
-        {
-            debugScreen.SetActive(!debugScreen.activeSelf);
-        }
+        Interact();
+    }
 
-        if(highlightBlock.gameObject.activeSelf == false)
+    private void Interact()
+    {
+        if (highlightBlock.gameObject.activeSelf == false)
         {
             return;
         }
 
-        if(toDestroy == true && Input.GetMouseButton(0))
+        if (toDestroy == true && Input.GetMouseButton(0))
         {
             toDestroy = false;
             Invoke("DestroyBlock", 0.25f);
-        }
-
-        if(selectedBlockIndex == 0)
-        {
-            return;
         }
 
         if (toPlace == true && Input.GetMouseButton(1))
@@ -250,7 +262,6 @@ public class PlayerController : MonoBehaviour
             Invoke("PlaceBlock", 0.25f);
         }
     }
-
     private void DestroyBlock()
     {
         chunkLoader.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
@@ -258,6 +269,12 @@ public class PlayerController : MonoBehaviour
     }
     private void PlaceBlock()
     {
+        if (selectedBlockIndex == 0)
+        {
+            toPlace = true;
+            return;
+        }
+
         int blockX = Mathf.FloorToInt(placeBlockPos.x);
         int playerX = Mathf.FloorToInt(transform.position.x);
 
@@ -291,6 +308,23 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         toJump = false;
     }
+    private void SneakCheck()
+    {
+        if(isGrounded == false)
+        {
+            return;
+        }
+
+        if((velocity.x < 0 && sneakLeft == true) || velocity.x > 0 && sneakRight == true)
+        {
+            velocity.x = 0;
+        }
+        if ((velocity.z < 0 && sneakBack == true) || velocity.z > 0 && sneakFront == true)
+        {
+            velocity.z = 0;
+        }
+    }
+
     private float CheckIfGrounded(float downSpeed)
     {
         if 
@@ -378,6 +412,54 @@ public class PlayerController : MonoBehaviour
                chunkLoader.CheckForVoxel(new Vector3(transform.position.x + playerWidthRadius, transform.position.y - 1, transform.position.z)) ||
                chunkLoader.CheckForVoxel(new Vector3(transform.position.x + playerWidthRadius, transform.position.y, transform.position.z))
               )
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+    public bool sneakFront
+    {
+        get
+        {
+            if(chunkLoader.CheckForVoxel(new Vector3(transform.position.x, transform.position.y - playerHeight, transform.position.z + 0.05f)) == false)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+    public bool sneakBack
+    {
+        get
+        {
+            if(chunkLoader.CheckForVoxel(new Vector3(transform.position.x, transform.position.y - playerHeight, transform.position.z - 0.05f)) == false)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+    public bool sneakLeft
+    {
+        get
+        {
+            if(chunkLoader.CheckForVoxel(new Vector3(transform.position.x - 0.05f, transform.position.y - playerHeight, transform.position.z)) == false)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+    public bool sneakRight
+    {
+        get
+        {
+            if(chunkLoader.CheckForVoxel(new Vector3(transform.position.x + 0.05f, transform.position.y - playerHeight, transform.position.z)) == false)
             {
                 return true;
             }

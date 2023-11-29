@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Threading;
 using System.Runtime.CompilerServices;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.TerrainTools;
 using UnityEngine;
@@ -36,14 +38,20 @@ public class ChunkLoader : MonoBehaviour
     public ChunkVector currentChunk;
     ChunkVector lastChunk;
 
-    List<ChunkVector> toCreate = new List<ChunkVector>();
-    private bool isCreatingChunks;
+    public Queue<Chunk> toDraw = new Queue<Chunk>();
 
+    List<ChunkVector> toCreate = new List<ChunkVector>();
+    public List<Chunk> toUpdate = new List<Chunk>();
+
+    Queue<Queue<VoxelMod>> modifications = new Queue<Queue<VoxelMod>>();
+    private bool applyingMods = false;
+
+    Thread chunkUpdateThread;
+    public object updateThreadLock = new object();
     private void Start()
     {
         worldManager = WorldManager.instance;
         player = worldManager.player.transform;
-        //noiseMap = WorldManager.instance.NoiseMap;
 
         chunkCount = WorldManager.instance.worldSizeInChunks;
         voxelCount = WorldManager.instance.worldSizeInVoxels;
@@ -52,7 +60,18 @@ public class ChunkLoader : MonoBehaviour
         chunkHeight = WorldManager.instance.chunkHeight;
 
         viewDistance = WorldManager.instance.viewDistanceInChunks;
+
         chunks = new Chunk[chunkCount, chunkCount];
+
+        if(worldManager.enableThreading == true)
+        {
+            Debug.Log("Threading");
+
+            chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
+            chunkUpdateThread.Start();
+        }
+
+
         GenerateChunks();
     }
 
@@ -66,9 +85,30 @@ public class ChunkLoader : MonoBehaviour
             lastChunk = currentChunk;
         }
 
-        if(toCreate.Count > 0 && isCreatingChunks == false)
+        if(toCreate.Count > 0)
         {
-            StartCoroutine(CreateChunks());
+            CreateChunk();
+        }
+
+        if (toDraw.Count > 0)
+        {
+            if (toDraw.Peek().isEditable == true)
+            {
+                toDraw.Dequeue().CreateMesh();
+            }
+        }
+
+        if (worldManager.enableThreading == false)
+        {
+            if (applyingMods == false)
+            {
+                ApplyModifications();
+            }
+
+            if (toUpdate.Count > 0)
+            {
+                UpdateChunks();
+            }
         }
     }
 
@@ -80,29 +120,97 @@ public class ChunkLoader : MonoBehaviour
             {
                 ChunkVector vector = new ChunkVector(x, z);
 
-                chunks[x, z] = new Chunk(this, vector, chunkWidth, chunkHeight, true);
-                activeChunks.Add(vector);
+                chunks[x, z] = new Chunk(this, vector, chunkWidth, chunkHeight);
+                toCreate.Add(vector);
             }
         }
 
         player.position = WorldManager.instance.spawnPosition;
         lastChunk = currentChunk;
+
+        CheckViewDistance();
     }
 
-    private IEnumerator CreateChunks()
+    private void CreateChunk()
     {
-        isCreatingChunks = true;
+        ChunkVector pos = toCreate[0];
+        toCreate.RemoveAt(0);
 
-        while(toCreate.Count > 0)
+        chunks[pos.x, pos.z].Init();
+    }
+    private void UpdateChunks()
+    {
+        bool updated = false;
+        int index = 0;
+
+        lock(updateThreadLock)
         {
-            chunks[toCreate[0].x, toCreate[0].z].Init();
-            toCreate.RemoveAt(0);
+            while (updated == false && index < toUpdate.Count - 1)
+            {
+                if (toUpdate[index].isEditable == true)
+                {
+                    toUpdate[index].UpdateChunk();
+                    toUpdate.RemoveAt(index);
+                    activeChunks.Add(toUpdate[index].mapPosition);
+                    updated = true;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+        }
+    }
 
-            yield return null;
+    void ThreadedUpdate()
+    {
+        while(true)
+        {
+            if (applyingMods == false)
+            {
+                ApplyModifications();
+            }
+
+            if (toUpdate.Count > 0)
+            {
+                UpdateChunks();
+            }
+        }
+    }
+    private void OnDisable()
+    {
+        if (worldManager.enableThreading == true)
+        {
+            chunkUpdateThread.Abort();
+        }
+    }
+    private void ApplyModifications()
+    {
+        applyingMods = true;
+
+        while(modifications.Count > 0)
+        {
+            Queue<VoxelMod> queue = modifications.Dequeue();
+
+            while(queue.Count > 0)
+            {
+                VoxelMod mod = queue.Dequeue();
+
+                ChunkVector chunkPos = GetChunkVectorFromVector3(mod.position);
+
+                if (chunks[chunkPos.x, chunkPos.z] == null)
+                {
+                    chunks[chunkPos.x, chunkPos.z] = new Chunk(this, chunkPos, chunkWidth, chunkHeight);
+                    toCreate.Add(chunkPos);
+                }
+
+                chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
+            }
         }
 
-        isCreatingChunks = false;
+        applyingMods = false;
     }
+
     protected ChunkVector GetChunkVectorFromVector3(Vector3 pos)
     {
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
@@ -123,6 +231,7 @@ public class ChunkLoader : MonoBehaviour
         lastChunk = currentChunk;
 
         List<ChunkVector> lastActive = new List<ChunkVector>(activeChunks);
+        activeChunks.Clear();
 
         for(int x = chunkVector.x - viewDistance; x < chunkVector.x + viewDistance; x++)
         {
@@ -132,8 +241,7 @@ public class ChunkLoader : MonoBehaviour
                 {
                     if (chunks[x, z] == null)
                     {
-                        //CreateChunk(x, z);
-                        chunks[x,z] = new Chunk(this, new ChunkVector(x, z), chunkWidth, chunkHeight, false);
+                        chunks[x,z] = new Chunk(this, new ChunkVector(x, z), chunkWidth, chunkHeight);
                         toCreate.Add(new ChunkVector(x, z));
                     }
                     else
@@ -143,6 +251,7 @@ public class ChunkLoader : MonoBehaviour
                             chunks[x, z].isActive = true; 
                         }
                     }
+
                     activeChunks.Add(new ChunkVector(x, z));
                 }
 
@@ -181,11 +290,11 @@ public class ChunkLoader : MonoBehaviour
         {
             voxelValue = 1;
         }
-        else if (yPos < terrainHeight - 1)
+        else if (yPos < terrainHeight)
         {
             voxelValue = 2;
         }
-        else if(yPos <= terrainHeight)
+        else if(yPos == terrainHeight)
         {
             voxelValue =  3;
         }
@@ -195,18 +304,29 @@ public class ChunkLoader : MonoBehaviour
         }
 
         //Second Pass
-        if(voxelValue != 1)
+        if(voxelValue == 1)
         {
-            return voxelValue;
+            foreach (Lode lode in defaultBiome.lodes)
+            {
+                if (yPos > lode.minHeight && yPos < lode.maxHeight)
+                {
+                    if (worldManager.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
+                    {
+                        voxelValue = lode.blockID;
+                    }
+                }
+            }
         }
 
-        foreach(Lode lode in defaultBiome.lodes)
+        //Third pass
+
+        if(yPos == terrainHeight)
         {
-            if(yPos > lode.minHeight && yPos < lode.maxHeight)
+            if (worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.treeZoneScale, 0) > defaultBiome.treeZoneThreshold)
             {
-                if(worldManager.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
+                if(worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.treePlacementScale, 0) > defaultBiome.treePlacementThreshold)
                 {
-                    voxelValue = lode.blockID;
+                   modifications.Enqueue(Structures.MakeTree(pos, defaultBiome.minTreeSize, defaultBiome.maxTreeSize));
                 }
             }
         }
@@ -223,7 +343,7 @@ public class ChunkLoader : MonoBehaviour
             return false;
         }
 
-        if (chunks[vector.x, vector.z] != null && chunks[vector.x, vector.z].isMapPopulated == true)
+        if (chunks[vector.x, vector.z] != null && chunks[vector.x, vector.z].isEditable == true)
         {
             return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(pos)].isSolid;
         }
@@ -248,6 +368,21 @@ public class ChunkLoader : MonoBehaviour
 
         return false;
     }
+
+    /*private IEnumerator CreateChunks()
+    {
+    isCreatingChunks = true;
+
+    while(toCreate.Count > 0)
+    {
+        chunks[toCreate[0].x, toCreate[0].z].Init();
+        toCreate.RemoveAt(0);
+
+        yield return null;
+    }
+
+    isCreatingChunks = false;
+    }*/
 
     /*private void UpdateChunks()
     {
@@ -366,4 +501,16 @@ public class ChunkLoader : MonoBehaviour
 
        // chunk.GenerateMesh(4, 5);
     }*/
+}
+
+public class VoxelMod
+{
+    public Vector3 position;
+    public int id;
+
+    public VoxelMod(Vector3 _position, int _id)
+    {
+        position = _position;
+        id = _id;
+    }
 }
