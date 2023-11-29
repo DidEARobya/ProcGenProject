@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Chunk
@@ -37,6 +35,7 @@ public class Chunk
     private List<Vector3> verts = new List<Vector3>();
     private List<int> tris = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
+    private List<Vector3> normals = new List<Vector3>();
 
     public int[,,] voxelMap;
     private bool _isActive;
@@ -164,6 +163,7 @@ public class Chunk
                 for (int u = 0; u < 4; u++)
                 {
                     verts.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[i, u]]);
+                    normals.Add(VoxelData.faceChecks[i]);
                 }
 
                 AddTexture(WorldManager.instance.blockData[blockID].GetTextureID(i));
@@ -274,8 +274,8 @@ public class Chunk
         mesh.vertices = verts.ToArray();
         mesh.triangles = tris.ToArray();
         mesh.uv = uvs.ToArray();
+        mesh.normals = normals.ToArray();
 
-        mesh.RecalculateNormals();
         meshFilter.mesh = mesh;
     }
 
@@ -285,6 +285,7 @@ public class Chunk
         verts.Clear();
         tris.Clear();
         uvs.Clear();
+        normals.Clear();
     }
     public bool isActive
     {

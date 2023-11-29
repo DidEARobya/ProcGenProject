@@ -15,20 +15,20 @@ public static class Structures
             height = minHeight;
         }
 
-        for(int i = 1; i < height; i++) 
+        for(int x = -1; x < 2; x++)
         {
-            queue.Enqueue(new VoxelMod(new Vector3(position.x, position.y + i, position.z), 1));
-        }
-
-        for(int x = 0; x < 4; x++)
-        {
-            for (int y = 0; y < 7; y++)
+            for (int y = -1; y < 4; y++)
             {
-                for (int z = 0; z < 4; z++)
+                for (int z = -1; z < 2; z++)
                 {
                     queue.Enqueue(new VoxelMod(new Vector3(position.x + x, position.y + height + y, position.z + z), 4));
                 }
             }
+        }
+
+        for (int i = 1; i < height; i++)
+        {
+            queue.Enqueue(new VoxelMod(new Vector3(position.x, position.y + i, position.z), 1));
         }
 
         return queue;

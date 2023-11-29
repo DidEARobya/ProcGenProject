@@ -97,8 +97,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: ef4edba6f1018cc44a2b218d35cfaaf9, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 7657c6caf137ce043842da2803cd5935, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -445,7 +445,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: enableThreading
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: worldHeightLimit
@@ -1109,6 +1109,14 @@ PrefabInstance:
       propertyPath: highlightBlock
       value: 
       objectReference: {fileID: 288388926}
+    - target: {fileID: 4164864763168717776, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
+      propertyPath: playerWidthRadius
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8927756139130838719, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.15
+      objectReference: {fileID: 0}
     - target: {fileID: 9010799950072688417, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
       propertyPath: m_Name
       value: Player
