@@ -15,7 +15,7 @@ public class ChunkLoader : MonoBehaviour
     private Vector3 cameraPos;
 
     WorldManager worldManager;
-    //protected float[,] noiseMap;
+    protected float[,] noiseMap;
 
     protected int chunkCount;
     protected int voxelCount;
@@ -55,6 +55,7 @@ public class ChunkLoader : MonoBehaviour
         viewDistance = WorldManager.instance.viewDistanceInChunks;
 
         chunks = new Chunk[chunkCount, chunkCount];
+        noiseMap = worldManager.noiseMap;
 
         if(worldManager.enableThreading == true)
         {
@@ -220,6 +221,11 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
+        if(x < 0 || x > worldManager.worldSizeInChunks || z < 0 || x > worldManager.worldSizeInChunks)
+        {
+            return null;
+        }
+
         return chunks[x, z];
     }
     protected void CheckViewDistance()
@@ -274,6 +280,7 @@ public class ChunkLoader : MonoBehaviour
     }
     public byte GetVoxel(Vector3 pos)
     {
+        int xPos = Mathf.FloorToInt(pos.x);
         int yPos = Mathf.FloorToInt(pos.y);
 
         //Generic
@@ -349,6 +356,17 @@ public class ChunkLoader : MonoBehaviour
         }
 
         return worldManager.blockData[GetVoxel(pos)].isSolid;
+    }
+    public int GetVoxelFromVector3(Vector3 pos)
+    {
+        Chunk temp = GetChunkFromVector3(pos);
+
+        if(temp == null)
+        {
+            return 0;
+        }
+
+        return temp.GetVoxelFromVector3(pos);
     }
     protected bool IsChunkInWorld(ChunkVector pos)
     {

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 cameraDefaultPos;
     private Vector3 cameraSneakPos;
 
+    private WorldManager worldManager;
     private ChunkLoader chunkLoader;
 
     [HideInInspector]
@@ -64,14 +66,20 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public int toolbarIndex = 0;
 
+    private int targetedBlockID;
+
     public bool isGrounded;
     private bool toJump;
     private bool toPlace;
-    private bool toDestroy; //temp bool
+
+    private float destroyTimer;
+    Vector3 interactPos;
 
     private void Start()
     {
         playerBase = GetComponent<PlayerBase>();
+
+        worldManager = WorldManager.instance;
 
         cameraTransform = Camera.main.transform;
         cameraDefaultPos = cameraTransform.localPosition;
@@ -79,15 +87,14 @@ public class PlayerController : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
 
-        gravity = WorldManager.gravity;
-        chunkLoader = WorldManager.instance.gameObject.GetComponent<ChunkLoader>();
+        gravity = worldManager.gravity;
+        chunkLoader = worldManager.gameObject.GetComponent<ChunkLoader>();
 
         movementState = MovementState.WALKING;
 
         isGrounded = false;
         toJump = false;
         toPlace = true;
-        toDestroy = true;
 
         fallingFrom = 0;
     }
@@ -153,8 +160,9 @@ public class PlayerController : MonoBehaviour
                 highlightBlock.position = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
                 placeBlockPos = lastPos;
 
-                highlightBlock.gameObject.SetActive(true);
+                targetedBlockID = chunkLoader.GetVoxelFromVector3(pos);
 
+                highlightBlock.gameObject.SetActive(true);
                 return;
             }
 
@@ -255,22 +263,42 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (toDestroy == true && Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0))
         {
-            toDestroy = false;
-            Invoke("DestroyBlock", 0.25f);
+            if(targetedBlockID == 0 )
+            {
+                return;
+            }
+
+            if (interactPos != highlightBlock.transform.position)
+            {
+                interactPos = highlightBlock.transform.position;
+                destroyTimer = 0;
+            }
+
+            destroyTimer += Time.deltaTime;
+
+            if(destroyTimer > worldManager.blockData[targetedBlockID].destroyTime)
+            {
+                DestroyBlock();
+            }
+        }
+
+        if(Input.GetMouseButtonUp(0))
+        {
+            destroyTimer = 0;
         }
 
         if (toPlace == true && Input.GetMouseButton(1))
         {
             toPlace = false;
-            Invoke("PlaceBlock", 0.25f);
+            Invoke("PlaceBlock", 0.15f);
         }
     }
     private void DestroyBlock()
     {
         chunkLoader.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
-        toDestroy = true;
+        destroyTimer = 0;
     }
     private void PlaceBlock()
     {

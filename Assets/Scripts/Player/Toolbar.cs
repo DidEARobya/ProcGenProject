@@ -55,6 +55,7 @@ public class Toolbar : MonoBehaviour
         AddItem(2, 1);
         AddItem(3, 1);
         AddItem(4, 1);
+        AddItem(5, 1);
     }
     public bool AddItem(int item, int amount)
     {

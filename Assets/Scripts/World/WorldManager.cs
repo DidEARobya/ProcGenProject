@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class WorldManager : MonoBehaviour
 {
@@ -11,9 +12,9 @@ public class WorldManager : MonoBehaviour
     public PlayerController player;
     public Vector3 spawnPosition;
 
-    public static float gravity = -13f;
+    public float gravity = -13f;
 
-    float[,] noiseMap;
+    public float[,] noiseMap;
 
     [SerializeField]
     public BlockData[] blockData;
@@ -21,17 +22,21 @@ public class WorldManager : MonoBehaviour
     [SerializeField]
     public Material blockMaterial;
 
-    //float maxHeight;
-    //float minHeight;
+    float maxHeight;
+    float minHeight;
 
-    //public float lacunarity = 0.246f;
-    //public float persistence = 0.5f;
-    //public int octaves = 8;
+    public float scale = 0.1f;
+    public float lacunarity = 0.246f;
+    public float persistence = 0.5f;
+    public int octaves = 8;
     public int seed = 32;
     public int seedOffset = 0;
 
     public int chunkWidth = 16;
     public int chunkHeight = 64;
+
+    private int width;
+    private int height;
 
     public int worldSizeInChunks = 20;
     public int worldSizeInVoxels
@@ -49,11 +54,14 @@ public class WorldManager : MonoBehaviour
 
             spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
 
-            //maxHeight = float.MinValue;
-            //minHeight = float.MaxValue;
-        }
+            maxHeight = float.MinValue;
+            minHeight = float.MaxValue;
 
-        //GenerateNoise(worldSizeInVoxels, worldSizeInVoxels, scale, lacunarity, persistence, octaves, seed, seedOffset);
+            width = worldSizeInVoxels;
+            height = worldSizeInChunks;
+
+            //NoiseGeneration(worldSizeInVoxels, worldSizeInVoxels, scale, lacunarity, persistence, octaves, seed, seedOffset);
+        }
     }
 
     private void Update()
@@ -142,12 +150,8 @@ public class WorldManager : MonoBehaviour
 
         return false;
     }
-    /*public void GenerateNoise(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
-    {
-        NoiseGeneration(width, height, scale, lacunarity, persistence, octaves, seed, seedOffset);
-    }
 
-    private void NoiseGeneration(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
+    /*private void NoiseGeneration(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
     {
         float[,] t = new float[width, height];
         float maxHeight = float.MinValue;
@@ -181,7 +185,7 @@ public class WorldManager : MonoBehaviour
                 {
                     maxHeight = val;
                 }
-                else //if(val < minHeight)
+                else
                 {
                     minHeight = val;
                 }

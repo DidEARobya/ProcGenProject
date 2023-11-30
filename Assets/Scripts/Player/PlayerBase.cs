@@ -21,6 +21,7 @@ public class PlayerBase : MonoBehaviour
 
     private void UpdateHealth(float diff)
     {
+        health += diff;
         healthBar.UpdateHealthBar(diff);
     }
 }

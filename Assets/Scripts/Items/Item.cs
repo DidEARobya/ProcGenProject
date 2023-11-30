@@ -9,6 +9,7 @@ public class Item : MonoBehaviour
 {
     private PlayerController player;
 
+    private WorldManager worldManager;
     private ChunkLoader chunkLoader;
 
     private float lifeSpan = 10f;
@@ -24,9 +25,10 @@ public class Item : MonoBehaviour
     private float gravity;
     public void Init(ChunkLoader loader, int index, Sprite sprite)
     {
+        worldManager =  WorldManager.instance;
         chunkLoader = loader;
-        gravity = WorldManager.gravity;
-        player = WorldManager.instance.player;
+        gravity = worldManager.gravity;
+        player = worldManager.player;
 
         blockIndex = index;
         animationObject = new GameObject();
@@ -39,7 +41,7 @@ public class Item : MonoBehaviour
 
         originalPos = animationObject.transform.localPosition;
 
-        WorldManager.instance.items.Add(this);
+        worldManager.items.Add(this);
     }
 
     private void Update()
@@ -83,6 +85,12 @@ public class Item : MonoBehaviour
 
         velocity += Vector3.up * verticalMomentum * Time.fixedDeltaTime;
 
+        if (CheckIfInsideBlock() == true)
+        {
+            velocity.y += 1;
+            return velocity;
+        }
+
         if (velocity.y < 0)
         {
             if(CheckIfGrounded() == true)
@@ -97,6 +105,15 @@ public class Item : MonoBehaviour
     private bool CheckIfGrounded()
     {
         if(chunkLoader.CheckForVoxel(new Vector3(transform.position.x, transform.position.y - 1, transform.position.z)) == true)
+        {
+            return true;
+        }
+
+        return false;
+    }
+    private bool CheckIfInsideBlock()
+    {
+        if(chunkLoader.CheckForVoxel(new Vector3(transform.position.x, transform.position.y, transform.position.z)) == true)
         {
             return true;
         }

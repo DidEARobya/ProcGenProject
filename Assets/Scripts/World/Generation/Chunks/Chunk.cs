@@ -146,6 +146,11 @@ public class Chunk
         x -= Mathf.FloorToInt(position.x);
         z -= Mathf.FloorToInt(position.z);
 
+        if(x < 0 || x > worldManager.worldSizeInVoxels || z < 0 || z > worldManager.worldSizeInVoxels || y > worldManager.chunkHeight)
+        {
+            return 0;
+        }
+
         return voxelMap[x, y, z];
     }
     protected void AddVoxel(Vector3 pos)
