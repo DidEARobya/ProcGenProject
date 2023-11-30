@@ -1,19 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class WorldManager : MonoBehaviour
 {
     public static WorldManager instance;
+
+    private WorldData worldData;
+
     public bool enableThreading;
 
     public List<Item> items = new List<Item>();
+
     public PlayerController player;
+    public Vector3 spawnTemp;
     public Vector3 spawnPosition;
 
-    public static float gravity = -13f;
+    public float gravity = -13f;
 
-    float[,] noiseMap;
+    public float[,] noiseMap;
 
     [SerializeField]
     public BlockData[] blockData;
@@ -21,17 +27,21 @@ public class WorldManager : MonoBehaviour
     [SerializeField]
     public Material blockMaterial;
 
-    //float maxHeight;
-    //float minHeight;
+    float maxHeight;
+    float minHeight;
 
-    //public float lacunarity = 0.246f;
-    //public float persistence = 0.5f;
-    //public int octaves = 8;
+    public float scale = 0.1f;
+    public float lacunarity = 0.246f;
+    public float persistence = 0.5f;
+    public int octaves = 8;
     public int seed = 32;
     public int seedOffset = 0;
 
     public int chunkWidth = 16;
     public int chunkHeight = 64;
+
+    private int width;
+    private int height;
 
     public int worldSizeInChunks = 20;
     public int worldSizeInVoxels
@@ -40,6 +50,7 @@ public class WorldManager : MonoBehaviour
     }
 
     public int viewDistanceInChunks = 5;
+    public bool isSpawned;
 
     private void Awake()
     {
@@ -47,20 +58,38 @@ public class WorldManager : MonoBehaviour
         {
             instance = this;
 
-            spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
+            worldData = GameObject.Find("WorldData")?.GetComponent<WorldData>();
 
-            //maxHeight = float.MinValue;
-            //minHeight = float.MaxValue;
+            if(worldData != null)
+            {
+                enableThreading = worldData.enableThreading;
+                seed = worldData.seed;
+                seedOffset = worldData.seedOffset;
+
+                worldSizeInChunks = worldData.worldSizeInChunks;
+                chunkWidth = worldData.chunkWidth;
+                chunkHeight = worldData.chunkHeight;
+
+                viewDistanceInChunks = worldData.viewDistanceInChunks;
+            }
+
+            spawnTemp = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
+            spawnPosition = spawnTemp;
+
+            maxHeight = float.MinValue;
+            minHeight = float.MaxValue;
+
+            width = worldSizeInVoxels;
+            height = worldSizeInChunks;
         }
-
-        //GenerateNoise(worldSizeInVoxels, worldSizeInVoxels, scale, lacunarity, persistence, octaves, seed, seedOffset);
     }
 
     private void Update()
     {
-        if(items.Count == 0)
+        if(isSpawned == false && spawnTemp != spawnPosition)
         {
-            return;
+            SpawnPlayer(spawnPosition);
+            isSpawned = true;
         }
 
         if(items.Count > 0)
@@ -71,7 +100,10 @@ public class WorldManager : MonoBehaviour
             }
         }
     }
-
+    public void SpawnPlayer(Vector3 position)
+    {
+        player.transform.position = position;
+    }
     public float Get2DPerlin(Vector2 position, float scale, int offset)
     {
         float seedVal = GenerateSeedValue(seed, offset);
@@ -142,12 +174,8 @@ public class WorldManager : MonoBehaviour
 
         return false;
     }
-    /*public void GenerateNoise(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
-    {
-        NoiseGeneration(width, height, scale, lacunarity, persistence, octaves, seed, seedOffset);
-    }
 
-    private void NoiseGeneration(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
+    /*private void NoiseGeneration(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
     {
         float[,] t = new float[width, height];
         float maxHeight = float.MinValue;
@@ -181,7 +209,7 @@ public class WorldManager : MonoBehaviour
                 {
                     maxHeight = val;
                 }
-                else //if(val < minHeight)
+                else
                 {
                     minHeight = val;
                 }

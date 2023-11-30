@@ -15,7 +15,7 @@ public class ChunkLoader : MonoBehaviour
     private Vector3 cameraPos;
 
     WorldManager worldManager;
-    //protected float[,] noiseMap;
+    protected float[,] noiseMap;
 
     protected int chunkCount;
     protected int voxelCount;
@@ -41,6 +41,10 @@ public class ChunkLoader : MonoBehaviour
 
     Thread chunkUpdateThread;
     public object updateThreadLock = new object();
+
+    private int readyIndex = 0;
+    public bool isReady = false;
+
     private void Start()
     {
         worldManager = WorldManager.instance;
@@ -55,6 +59,7 @@ public class ChunkLoader : MonoBehaviour
         viewDistance = WorldManager.instance.viewDistanceInChunks;
 
         chunks = new Chunk[chunkCount, chunkCount];
+        noiseMap = worldManager.noiseMap;
 
         if(worldManager.enableThreading == true)
         {
@@ -79,6 +84,11 @@ public class ChunkLoader : MonoBehaviour
         if(toCreate.Count > 0)
         {
             CreateChunk();
+
+            if (isReady == false && toCreate.Count == 0)
+            {
+                isReady = true;
+            }
         }
 
         if (toDraw.Count > 0)
@@ -220,6 +230,11 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
+        if(x < 0 || x > worldManager.worldSizeInChunks || z < 0 || x > worldManager.worldSizeInChunks)
+        {
+            return null;
+        }
+
         return chunks[x, z];
     }
     protected void CheckViewDistance()
@@ -259,7 +274,7 @@ public class ChunkLoader : MonoBehaviour
                     if (lastActive[i].Equals(temp))
                     {
                         lastActive.RemoveAt(i);
-                        i--;
+                        break;
                     }
                 }
             }
@@ -274,6 +289,7 @@ public class ChunkLoader : MonoBehaviour
     }
     public byte GetVoxel(Vector3 pos)
     {
+        int xPos = Mathf.FloorToInt(pos.x);
         int yPos = Mathf.FloorToInt(pos.y);
 
         //Generic
@@ -285,6 +301,12 @@ public class ChunkLoader : MonoBehaviour
         //First Pass
         int terrainHeight = Mathf.FloorToInt(defaultBiome.terrainHeight * worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.terrainScale, 0)) + defaultBiome.solidGroundHeight;
         byte voxelValue = 0;
+
+        if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
+        {
+            worldManager.spawnPosition = new Vector3(pos.x, pos.y + 4, pos.z);
+        }
+
 
         if (yPos < terrainHeight - 4)
         {
@@ -349,6 +371,17 @@ public class ChunkLoader : MonoBehaviour
         }
 
         return worldManager.blockData[GetVoxel(pos)].isSolid;
+    }
+    public int GetVoxelFromVector3(Vector3 pos)
+    {
+        Chunk temp = GetChunkFromVector3(pos);
+
+        if(temp == null)
+        {
+            return 0;
+        }
+
+        return temp.GetVoxelFromVector3(pos);
     }
     protected bool IsChunkInWorld(ChunkVector pos)
     {

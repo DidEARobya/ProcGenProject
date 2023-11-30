@@ -12,6 +12,8 @@ public class BlockData
     public Sprite displayImage;
     public int stackSize;
 
+    public float destroyTime;
+
     [Header("Texture Values")]
     public int backFaceTexture;
     public int frontFaceTexture;
