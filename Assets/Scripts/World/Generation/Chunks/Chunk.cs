@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Chunk
@@ -72,7 +73,7 @@ public class Chunk
 
     public void UpdateChunk()
     {
-        for (int i = 0; i < modifications.Count; i++)
+        while(modifications.Count > 0)
         {
             VoxelMod mod = modifications.Dequeue();
             Vector3 pos = (mod.position -= position);

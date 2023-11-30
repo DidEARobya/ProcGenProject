@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
@@ -24,6 +25,11 @@ public class PlayerController : MonoBehaviour
 
     [HideInInspector]
     public Toolbar toolbar;
+
+    [SerializeField]
+    public GameObject loadingScreen;
+    private float loadDelay;
+    private bool isSpawned;
 
     [SerializeField]
     public Transform highlightBlock;
@@ -96,10 +102,24 @@ public class PlayerController : MonoBehaviour
         toJump = false;
         toPlace = true;
 
+        isSpawned = false;
+        loadDelay = 0;
+
         fallingFrom = 0;
     }
     private void Update()
     {
+        if(chunkLoader.isReady == true && isSpawned == false && isGrounded == true)
+        {
+            loadDelay += Time.deltaTime;
+
+            if(loadDelay > 2f)
+            {
+                loadingScreen.SetActive(false);
+                isSpawned = true;
+            }
+        }
+
         FallingLogic();
         Inputs();
         UpdateInteractPos();
@@ -122,6 +142,11 @@ public class PlayerController : MonoBehaviour
 
     private void FallingLogic()
     {
+        if(isSpawned == false)
+        {
+            return;
+        }
+
         if (isGrounded == false)
         {
             if(fallingFrom == 0)
@@ -135,7 +160,7 @@ public class PlayerController : MonoBehaviour
             {
                 float difference = fallingFrom - transform.position.y;
 
-                int temp = Mathf.FloorToInt(difference / 4);
+                int temp = Mathf.FloorToInt(difference / 3);
 
                 if(difference > 0)
                 {
@@ -148,6 +173,11 @@ public class PlayerController : MonoBehaviour
     }
     private void UpdateInteractPos()
     {
+        if(isSpawned == false)
+        {
+            return;
+        }
+
         float step = checkIncrement;
         Vector3 lastPos = new Vector3();
 
@@ -219,6 +249,11 @@ public class PlayerController : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
+        }
+
+        if(isSpawned == false)
+        {
+            return;
         }
 
         horizontal = Input.GetAxis("Horizontal");

@@ -6,10 +6,15 @@ using UnityEngine.UIElements;
 public class WorldManager : MonoBehaviour
 {
     public static WorldManager instance;
+
+    private WorldData worldData;
+
     public bool enableThreading;
 
     public List<Item> items = new List<Item>();
+
     public PlayerController player;
+    public Vector3 spawnTemp;
     public Vector3 spawnPosition;
 
     public float gravity = -13f;
@@ -45,6 +50,7 @@ public class WorldManager : MonoBehaviour
     }
 
     public int viewDistanceInChunks = 5;
+    public bool isSpawned;
 
     private void Awake()
     {
@@ -52,23 +58,38 @@ public class WorldManager : MonoBehaviour
         {
             instance = this;
 
-            spawnPosition = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
+            worldData = GameObject.Find("WorldData")?.GetComponent<WorldData>();
+
+            if(worldData != null)
+            {
+                enableThreading = worldData.enableThreading;
+                seed = worldData.seed;
+                seedOffset = worldData.seedOffset;
+
+                worldSizeInChunks = worldData.worldSizeInChunks;
+                chunkWidth = worldData.chunkWidth;
+                chunkHeight = worldData.chunkHeight;
+
+                viewDistanceInChunks = worldData.viewDistanceInChunks;
+            }
+
+            spawnTemp = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
+            spawnPosition = spawnTemp;
 
             maxHeight = float.MinValue;
             minHeight = float.MaxValue;
 
             width = worldSizeInVoxels;
             height = worldSizeInChunks;
-
-            //NoiseGeneration(worldSizeInVoxels, worldSizeInVoxels, scale, lacunarity, persistence, octaves, seed, seedOffset);
         }
     }
 
     private void Update()
     {
-        if(items.Count == 0)
+        if(isSpawned == false && spawnTemp != spawnPosition)
         {
-            return;
+            SpawnPlayer(spawnPosition);
+            isSpawned = true;
         }
 
         if(items.Count > 0)
@@ -79,7 +100,10 @@ public class WorldManager : MonoBehaviour
             }
         }
     }
-
+    public void SpawnPlayer(Vector3 position)
+    {
+        player.transform.position = position;
+    }
     public float Get2DPerlin(Vector2 position, float scale, int offset)
     {
         float seedVal = GenerateSeedValue(seed, offset);

@@ -41,6 +41,10 @@ public class ChunkLoader : MonoBehaviour
 
     Thread chunkUpdateThread;
     public object updateThreadLock = new object();
+
+    private int readyIndex = 0;
+    public bool isReady = false;
+
     private void Start()
     {
         worldManager = WorldManager.instance;
@@ -80,6 +84,11 @@ public class ChunkLoader : MonoBehaviour
         if(toCreate.Count > 0)
         {
             CreateChunk();
+
+            if (isReady == false && toCreate.Count == 0)
+            {
+                isReady = true;
+            }
         }
 
         if (toDraw.Count > 0)
@@ -265,7 +274,7 @@ public class ChunkLoader : MonoBehaviour
                     if (lastActive[i].Equals(temp))
                     {
                         lastActive.RemoveAt(i);
-                        i--;
+                        break;
                     }
                 }
             }
@@ -292,6 +301,12 @@ public class ChunkLoader : MonoBehaviour
         //First Pass
         int terrainHeight = Mathf.FloorToInt(defaultBiome.terrainHeight * worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.terrainScale, 0)) + defaultBiome.solidGroundHeight;
         byte voxelValue = 0;
+
+        if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
+        {
+            worldManager.spawnPosition = new Vector3(pos.x, pos.y + 4, pos.z);
+        }
+
 
         if (yPos < terrainHeight - 4)
         {

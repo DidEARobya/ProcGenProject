@@ -300,6 +300,11 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 2721210121993857986, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
   m_PrefabInstance: {fileID: 6749686597748397111}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1066645414 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 562811790897654271, guid: 8b0db7633f50b3e4285a64a263a9af1d, type: 3}
+  m_PrefabInstance: {fileID: 3994492745696613128}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1597189308 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4164864763168717776, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
@@ -1165,6 +1170,10 @@ PrefabInstance:
       propertyPath: debugScreen
       value: 
       objectReference: {fileID: 443339444}
+    - target: {fileID: 4164864763168717776, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
+      propertyPath: loadingScreen
+      value: 
+      objectReference: {fileID: 1066645414}
     - target: {fileID: 4164864763168717776, guid: 3921f4744fe39e6449cede5a100058fd, type: 3}
       propertyPath: checkIncrement
       value: 0.1
