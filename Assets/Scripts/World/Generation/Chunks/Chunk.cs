@@ -36,7 +36,7 @@ public class Chunk
     Material[] materials = new Material[2];
     private List<Vector3> verts = new List<Vector3>();
     private List<int> tris = new List<int>();
-    private List<int> transparentTris = new List<int>();
+    //private List<int> transparentTris = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
     private List<Vector3> normals = new List<Vector3>();
 
@@ -68,9 +68,9 @@ public class Chunk
         meshRenderer = chunkObject.AddComponent<MeshRenderer>();
 
         materials[0] = worldManager.blockMaterial;
-        materials[1] = worldManager.transparentBlockMaterial;
+        //materials[1] = worldManager.transparentBlockMaterial;
 
-        meshRenderer.materials = materials;
+        meshRenderer.material = materials[0];
 
         voxelMap = new int[width, height, width];
 
@@ -180,11 +180,11 @@ public class Chunk
         int z = Mathf.FloorToInt(pos.z);
 
         int blockID = voxelMap[x, y, z];
-        bool isTransparent = worldManager.blockData[blockID].isTransparent;
+        //bool isTransparent = worldManager.blockData[blockID].isTransparent;
 
         for (int i = 0; i < 6; i++)
         {
-            if (CheckVoxelIsSolid(pos + VoxelData.faceChecks[i]) == false || CheckVoxelIsTransparent(pos + VoxelData.faceChecks[i]) == true)
+            if (CheckVoxelIsSolid(pos + VoxelData.faceChecks[i]) == false)
             {
                 for (int u = 0; u < 4; u++)
                 {
@@ -194,15 +194,15 @@ public class Chunk
 
                 AddTexture(WorldManager.instance.blockData[blockID].GetTextureID(i));
 
-                if(isTransparent == false)
-                {
+                //if(isTransparent == false)
+                //{
                     tris.Add(vIndex);
                     tris.Add(vIndex + 1);
                     tris.Add(vIndex + 2);
                     tris.Add(vIndex + 2);
                     tris.Add(vIndex + 1);
                     tris.Add(vIndex + 3);
-                }
+                /*}
                 else
                 {
                     transparentTris.Add(vIndex);
@@ -211,7 +211,7 @@ public class Chunk
                     transparentTris.Add(vIndex + 2);
                     transparentTris.Add(vIndex + 1);
                     transparentTris.Add(vIndex + 3);
-                }
+                }*/
 
                 vIndex += 4;
             }
@@ -311,11 +311,12 @@ public class Chunk
 
         mesh.vertices = verts.ToArray();
 
-        mesh.subMeshCount = 2;
+        //mesh.subMeshCount = 2;
 
-        mesh.SetTriangles(tris.ToArray(), 0);
-        mesh.SetTriangles(transparentTris.ToArray(), 1);
+        //mesh.SetTriangles(tris.ToArray(), 0);
+        //mesh.SetTriangles(transparentTris.ToArray(), 1);
 
+        mesh.triangles = tris.ToArray();
         mesh.uv = uvs.ToArray();
         mesh.normals = normals.ToArray();
 
@@ -327,7 +328,7 @@ public class Chunk
         vIndex = 0;
         verts.Clear();
         tris.Clear();
-        transparentTris.Clear();
+        //transparentTris.Clear();
         uvs.Clear();
         normals.Clear();
     }

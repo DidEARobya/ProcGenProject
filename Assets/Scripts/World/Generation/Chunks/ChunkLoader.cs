@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Security.Cryptography;
 using System.Threading;
 using UnityEngine;
 
@@ -122,9 +123,11 @@ public class ChunkLoader : MonoBehaviour
 
     protected void GenerateChunks()
     {
-        for(int x = (chunkCount / 2) - viewDistance; x < (chunkCount / 2) + viewDistance; x++)
+        int chunksCount = Mathf.FloorToInt(chunkCount / 2);
+
+        for(int x = chunksCount - viewDistance; x < chunksCount + viewDistance; x++)
         {
-            for (int z = (chunkCount / 2) - viewDistance; z < (chunkCount / 2) + viewDistance; z++)
+            for (int z = chunksCount - viewDistance; z < chunksCount + viewDistance; z++)
             {
                 ChunkVector vector = new ChunkVector(x, z);
 
@@ -155,6 +158,12 @@ public class ChunkLoader : MonoBehaviour
         {
             while (updated == false && index < toUpdate.Count - 1)
             {
+                if (toUpdate[index] == null)
+                {
+                    toUpdate.RemoveAt(index);
+                    return;
+                }
+
                 if (toUpdate[index].isEditable == true)
                 {
                     toUpdate[index].UpdateChunk();
@@ -180,14 +189,14 @@ public class ChunkLoader : MonoBehaviour
     {
         while(true)
         {
-            if (applyingMods == false)
-            {
-                ApplyModifications();
-            }
-
             if (toUpdate.Count > 0)
             {
                 UpdateChunks();
+            }
+
+            if (applyingMods == false)
+            {
+                ApplyModifications();
             }
         }
     }
@@ -212,11 +221,18 @@ public class ChunkLoader : MonoBehaviour
 
                 ChunkVector chunkPos = GetChunkVectorFromVector3(mod.position);
 
+                if (chunkPos == null || chunks.GetLength(0) <= chunkPos.x || chunks.GetLength(1) <= chunkPos.z)
+                {
+                    Debug.Log("Bad Mod position");
+                    return;
+                }
+                
                 if (chunks[chunkPos.x, chunkPos.z] == null)
                 {
                     chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
                     toCreate.Add(chunkPos);
                 }
+
 
                 chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
             }
@@ -230,6 +246,11 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
+        if (x < 0 || x > worldManager.worldSizeInChunks - 1 || z < 0 || z > worldManager.worldSizeInChunks - 1)
+        {
+            return null;
+        }
+
         return new ChunkVector(x, z);
     }
     public Chunk GetChunkFromVector3(Vector3 pos)
@@ -237,7 +258,7 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
-        if(x < 0 || x > worldManager.worldSizeInChunks || z < 0 || x > worldManager.worldSizeInChunks)
+        if(x < 0 || x > worldManager.worldSizeInChunks - 1 || z < 0 || z > worldManager.worldSizeInChunks - 1)
         {
             return null;
         }
