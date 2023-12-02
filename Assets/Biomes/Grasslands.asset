@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec37eec263be9604baafe9bad78e488e, type: 3}
-  m_Name: Forest
+  m_Name: Grasslands
   m_EditorClassIdentifier: 
-  biomeName: Forest
-  offset: 2654
-  scale: 0.058
-  terrainHeight: 48
-  terrainScale: 0.5
-  surfaceBlock: 8
+  biomeName: Grasslands
+  offset: 1956
+  scale: 0.038
+  terrainHeight: 22
+  terrainScale: 0.1
+  surfaceBlock: 3
   subSurfaceBlock: 2
   vegetationType: 0
   vegetationZoneScale: 1.3
-  vegetationZoneThreshold: 0.372
+  vegetationZoneThreshold: 0.893
   vegetationPlacementScale: 15
   vegetationPlacementThreshold: 0.8
   generateVegetation: 1
