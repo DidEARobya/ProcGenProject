@@ -5,25 +5,33 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BiomeData", menuName = "Biomes/Biome Data")]
 public class BiomeData :ScriptableObject
 {
-
+    [Header("Data")]
     public string biomeName;
+    public int offset;
+    public float scale;
 
     [Header("Terrain")]
-    public int solidGroundHeight;
     public int terrainHeight;
     public float terrainScale;
 
-    [Header("Forest")]
-    public float treeZoneScale;
-    [Range(0.1f, 1f)]
-    public float treeZoneThreshold;
+    public int surfaceBlock;
+    public int subSurfaceBlock;
 
-    public float treePlacementScale;
-    [Range(0.1f, 1f)]
-    public float treePlacementThreshold;
+    [Header("Vegetation")]
+    public int vegetationType;
 
-    public int minTreeSize;
-    public int maxTreeSize;
+    public float vegetationZoneScale;
+    [Range(0.1f, 1f)]
+    public float vegetationZoneThreshold;
+
+    public float vegetationPlacementScale;
+    [Range(0.1f, 1f)]
+    public float vegetationPlacementThreshold;
+
+    public bool generateVegetation = true;
+
+    public int minSize;
+    public int maxSize;
 
     [Header("Lodes")]
     public Lode[] lodes;

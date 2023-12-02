@@ -7,7 +7,9 @@ using UnityEngine.UI;
 public class BlockData
 {
     public string blockName;
+
     public bool isSolid;
+    public bool isTransparent;
 
     public Sprite displayImage;
     public int stackSize;
