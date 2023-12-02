@@ -1,15 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using UnityEngine;
 
 
 public class ChunkLoader : MonoBehaviour
 {
+    public static ChunkLoader instance;
+
     Transform player;
 
     [SerializeField]
-    public BiomeData defaultBiome;
+    public BiomeData[] biomes;
 
     private new Camera camera;
     private Vector3 cameraPos;
@@ -47,28 +50,32 @@ public class ChunkLoader : MonoBehaviour
 
     private void Start()
     {
-        worldManager = WorldManager.instance;
-        player = worldManager.player.transform;
+        if(instance == null)
+        { 
+            instance = this;
 
-        chunkCount = WorldManager.instance.worldSizeInChunks;
-        voxelCount = WorldManager.instance.worldSizeInVoxels;
+            worldManager = WorldManager.instance;
+            player = worldManager.player.transform;
 
-        chunkWidth = WorldManager.instance.chunkWidth;
-        chunkHeight = WorldManager.instance.chunkHeight;
+            chunkCount = worldManager.worldSizeInChunks;
+            voxelCount = worldManager.worldSizeInVoxels;
 
-        viewDistance = WorldManager.instance.viewDistanceInChunks;
+            chunkWidth = worldManager.chunkWidth;
+            chunkHeight = worldManager.chunkHeight;
 
-        chunks = new Chunk[chunkCount, chunkCount];
-        noiseMap = worldManager.noiseMap;
+            viewDistance = worldManager.viewDistanceInChunks;
 
-        if(worldManager.enableThreading == true)
-        {
-            chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
-            chunkUpdateThread.Start();
+            chunks = new Chunk[chunkCount, chunkCount];
+            noiseMap = worldManager.noiseMap;
+
+            if (worldManager.enableThreading == true)
+            {
+                chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
+                chunkUpdateThread.Start();
+            }
+
+            GenerateChunks();
         }
-
-
-        GenerateChunks();
     }
 
     private void Update()
@@ -121,7 +128,7 @@ public class ChunkLoader : MonoBehaviour
             {
                 ChunkVector vector = new ChunkVector(x, z);
 
-                chunks[x, z] = new Chunk(this, vector, chunkWidth, chunkHeight);
+                chunks[x, z] = new Chunk(vector, chunkWidth, chunkHeight);
                 toCreate.Add(vector);
             }
         }
@@ -207,7 +214,7 @@ public class ChunkLoader : MonoBehaviour
 
                 if (chunks[chunkPos.x, chunkPos.z] == null)
                 {
-                    chunks[chunkPos.x, chunkPos.z] = new Chunk(this, chunkPos, chunkWidth, chunkHeight);
+                    chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
                     toCreate.Add(chunkPos);
                 }
 
@@ -255,7 +262,7 @@ public class ChunkLoader : MonoBehaviour
                 {
                     if (chunks[x, z] == null)
                     {
-                        chunks[x,z] = new Chunk(this, temp, chunkWidth, chunkHeight);
+                        chunks[x,z] = new Chunk(temp, chunkWidth, chunkHeight);
                         toCreate.Add(temp);
                     }
                     else
@@ -287,20 +294,52 @@ public class ChunkLoader : MonoBehaviour
             activeChunks.Remove(lastActive[i]);
         }
     }
-    public byte GetVoxel(Vector3 pos)
+    public int GetVoxel(Vector3 pos)
     {
         int xPos = Mathf.FloorToInt(pos.x);
         int yPos = Mathf.FloorToInt(pos.y);
 
+        Vector2 currentPos = new Vector2(pos.x, pos.z);
         //Generic
         if(IsVoxelInWorld(pos) == false)
         {
             return 0;
         }
 
+        //Biome selection
+        int solidGroundHeight = 24;
+
+        float biomesTotalHeight = 0;
+        int count = 0;
+
+        float strongestPerlinWeight = 0;
+        int strongestBiome = 0;
+
+        for(int i = 0; i < biomes.Length; i++)
+        {
+            float weight = Perlin.Get2DPerlin(currentPos, biomes[i].scale, biomes[i].offset);
+
+            if(weight > strongestPerlinWeight)
+            {
+                strongestPerlinWeight = weight;
+                strongestBiome = i;
+            }
+
+            float height = biomes[i].terrainHeight * Perlin.Get2DPerlin(currentPos, biomes[i].terrainScale, 0) * weight;
+
+            if(height > 0)
+            {
+                biomesTotalHeight += height;
+                count++;
+            }
+        }
+
+        BiomeData biome = biomes[strongestBiome];
+        float averageHeight = biomesTotalHeight / count;
+
         //First Pass
-        int terrainHeight = Mathf.FloorToInt(defaultBiome.terrainHeight * worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.terrainScale, 0)) + defaultBiome.solidGroundHeight;
-        byte voxelValue = 0;
+        int terrainHeight = Mathf.FloorToInt(averageHeight + solidGroundHeight);
+        int voxelValue = 0;
 
         if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
         {
@@ -314,11 +353,11 @@ public class ChunkLoader : MonoBehaviour
         }
         else if (yPos < terrainHeight)
         {
-            voxelValue = 2;
+            voxelValue = biome.subSurfaceBlock;
         }
         else if(yPos == terrainHeight)
         {
-            voxelValue =  3;
+            voxelValue =  biome.surfaceBlock;
         }
         else
         {
@@ -328,11 +367,11 @@ public class ChunkLoader : MonoBehaviour
         //Second Pass
         if(voxelValue == 1)
         {
-            foreach (Lode lode in defaultBiome.lodes)
+            foreach (Lode lode in biome.lodes)
             {
                 if (yPos > lode.minHeight && yPos < lode.maxHeight)
                 {
-                    if (worldManager.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
+                    if (Perlin.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
                     {
                         voxelValue = lode.blockID;
                     }
@@ -342,13 +381,13 @@ public class ChunkLoader : MonoBehaviour
 
         //Third pass
 
-        if(yPos == terrainHeight)
+        if(yPos == terrainHeight && biome.generateVegetation == true)
         {
-            if (worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.treeZoneScale, 0) > defaultBiome.treeZoneThreshold)
+            if (Perlin.Get2DPerlin(currentPos, biome.vegetationZoneScale, 0) > biome.vegetationZoneThreshold)
             {
-                if(worldManager.Get2DPerlin(new Vector2(pos.x, pos.z), defaultBiome.treePlacementScale, 0) > defaultBiome.treePlacementThreshold)
+                if(Perlin.Get2DPerlin(currentPos, biome.vegetationPlacementScale, 0) > biome.vegetationPlacementThreshold)
                 {
-                   modifications.Enqueue(Structures.MakeTree(pos, defaultBiome.minTreeSize, defaultBiome.maxTreeSize));
+                   modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize));
                 }
             }
         }
@@ -371,6 +410,22 @@ public class ChunkLoader : MonoBehaviour
         }
 
         return worldManager.blockData[GetVoxel(pos)].isSolid;
+    }
+    public bool CheckForTransparentVoxel(Vector3 pos)
+    {
+        ChunkVector vector = new ChunkVector(pos);
+
+        if (IsVoxelInWorld(pos) == false)
+        {
+            return false;
+        }
+
+        if (chunks[vector.x, vector.z] != null && chunks[vector.x, vector.z].isEditable == true)
+        {
+            return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(pos)].isSolid;
+        }
+
+        return worldManager.blockData[GetVoxel(pos)].isTransparent;
     }
     public int GetVoxelFromVector3(Vector3 pos)
     {
@@ -401,139 +456,6 @@ public class ChunkLoader : MonoBehaviour
 
         return false;
     }
-
-    /*private IEnumerator CreateChunks()
-    {
-    isCreatingChunks = true;
-
-    while(toCreate.Count > 0)
-    {
-        chunks[toCreate[0].x, toCreate[0].z].Init();
-        toCreate.RemoveAt(0);
-
-        yield return null;
-    }
-
-    isCreatingChunks = false;
-    }*/
-
-    /*private void UpdateChunks()
-    {
-        if(currentChunk == null)
-        {
-            return;
-        }
-
-        Vector3 origin = currentChunk.Origin;
-
-        Vector3 chunkCheck = origin + new Vector3(chunkSize, 0, 0);
-
-        if(renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(chunkOffset, 0 ,0)));
-        }
-
-        chunkCheck = origin + new Vector3(chunkSize, 0, chunkSize);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(chunkOffset, 0, chunkOffset)));
-        }
-
-        chunkCheck = origin + new Vector3(0, 0, chunkSize);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(0, 0, chunkOffset)));
-        }
-
-        chunkCheck = origin + new Vector3(-chunkSize, 0, chunkSize);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(-chunkOffset, 0, chunkOffset)));
-        }
-
-        chunkCheck = origin + new Vector3(-chunkSize, 0, 0);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(-chunkOffset, 0, 0)));
-        }
-
-        chunkCheck = origin + new Vector3(-chunkSize, 0, -chunkSize);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(-chunkOffset, 0, -chunkOffset)));
-        }
-
-        chunkCheck = origin + new Vector3(0, 0, -chunkSize);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(0, 0, -chunkOffset)));
-        }
-
-        chunkCheck = origin + new Vector3(chunkSize, 0, -chunkSize);
-
-        if (renderedChunks.ContainsValue(chunkCheck) == false)
-        {
-            GenerateChunks(chunkCheck, (origin + new Vector3(chunkOffset, 0, -chunkOffset)));
-        }
-    }*/
-
-    /*protected Chunk GenerateChunks(Vector3 origin, Vector3 pos)
-    {
-        if (noiseMap.GetLength(0) < origin.x)
-        {
-            Debug.Log("Out of range");
-            return null;
-        }
-        else if (noiseMap.GetLength(1) < origin.y)
-        {
-            Debug.Log("Out of range");
-            return null;
-        }
-
-        Chunk chunk = Instantiate(chunkPrefab) as Chunk;
-        chunk.name = "Chunk";
-        chunk.transform.SetParent(transform, true);
-
-        chunk.Init();
-        GenerateChunk(chunk, noiseMap);
-        renderedChunks.Add(chunk, origin);
-
-        return chunk;
-    }
-    protected void GenerateChunk(Chunk chunk, float[,] noiseMap)
-    {
-        for (int x = 0; x < chunk.Width; x++)
-        {
-            for (int y = 0; y < chunk.Height; y++)
-            {
-                if ((x + chunk.Origin.x) < 0 || noiseMap.GetLength(0) < (x + chunk.Origin.x))
-                {
-                    Debug.Log("Out of range");
-
-                    physicsChunks.Remove(chunk);
-                    //Destroy(chunk.gameObject);
-                    return;
-                }
-                else if ((y + chunk.Origin.y) < 0 || noiseMap.GetLength(1) < (y + chunk.Origin.y))
-                {
-                    Debug.Log("Out of range");
-                    physicsChunks.Remove(chunk);
-                    //Destroy(chunk.gameObject);
-                    return;
-                }
-
-                chunk.Data[x, y] = noiseMap[Mathf.FloorToInt(x + chunk.Origin.x), Mathf.FloorToInt(y + chunk.Origin.y)];
-            }
-        }
-
-       // chunk.GenerateMesh(4, 5);
-    }*/
 }
 
 public class VoxelMod
@@ -547,3 +469,140 @@ public class VoxelMod
         id = _id;
     }
 }
+
+
+
+
+
+/*private IEnumerator CreateChunks()
+  {
+  isCreatingChunks = true;
+
+  while(toCreate.Count > 0)
+  {
+      chunks[toCreate[0].x, toCreate[0].z].Init();
+      toCreate.RemoveAt(0);
+
+      yield return null;
+  }
+
+  isCreatingChunks = false;
+  }*/
+
+/*private void UpdateChunks()
+{
+    if(currentChunk == null)
+    {
+        return;
+    }
+
+    Vector3 origin = currentChunk.Origin;
+
+    Vector3 chunkCheck = origin + new Vector3(chunkSize, 0, 0);
+
+    if(renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(chunkOffset, 0 ,0)));
+    }
+
+    chunkCheck = origin + new Vector3(chunkSize, 0, chunkSize);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(chunkOffset, 0, chunkOffset)));
+    }
+
+    chunkCheck = origin + new Vector3(0, 0, chunkSize);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(0, 0, chunkOffset)));
+    }
+
+    chunkCheck = origin + new Vector3(-chunkSize, 0, chunkSize);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(-chunkOffset, 0, chunkOffset)));
+    }
+
+    chunkCheck = origin + new Vector3(-chunkSize, 0, 0);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(-chunkOffset, 0, 0)));
+    }
+
+    chunkCheck = origin + new Vector3(-chunkSize, 0, -chunkSize);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(-chunkOffset, 0, -chunkOffset)));
+    }
+
+    chunkCheck = origin + new Vector3(0, 0, -chunkSize);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(0, 0, -chunkOffset)));
+    }
+
+    chunkCheck = origin + new Vector3(chunkSize, 0, -chunkSize);
+
+    if (renderedChunks.ContainsValue(chunkCheck) == false)
+    {
+        GenerateChunks(chunkCheck, (origin + new Vector3(chunkOffset, 0, -chunkOffset)));
+    }
+}*/
+
+/*protected Chunk GenerateChunks(Vector3 origin, Vector3 pos)
+{
+    if (noiseMap.GetLength(0) < origin.x)
+    {
+        Debug.Log("Out of range");
+        return null;
+    }
+    else if (noiseMap.GetLength(1) < origin.y)
+    {
+        Debug.Log("Out of range");
+        return null;
+    }
+
+    Chunk chunk = Instantiate(chunkPrefab) as Chunk;
+    chunk.name = "Chunk";
+    chunk.transform.SetParent(transform, true);
+
+    chunk.Init();
+    GenerateChunk(chunk, noiseMap);
+    renderedChunks.Add(chunk, origin);
+
+    return chunk;
+}
+protected void GenerateChunk(Chunk chunk, float[,] noiseMap)
+{
+    for (int x = 0; x < chunk.Width; x++)
+    {
+        for (int y = 0; y < chunk.Height; y++)
+        {
+            if ((x + chunk.Origin.x) < 0 || noiseMap.GetLength(0) < (x + chunk.Origin.x))
+            {
+                Debug.Log("Out of range");
+
+                physicsChunks.Remove(chunk);
+                //Destroy(chunk.gameObject);
+                return;
+            }
+            else if ((y + chunk.Origin.y) < 0 || noiseMap.GetLength(1) < (y + chunk.Origin.y))
+            {
+                Debug.Log("Out of range");
+                physicsChunks.Remove(chunk);
+                //Destroy(chunk.gameObject);
+                return;
+            }
+
+            chunk.Data[x, y] = noiseMap[Mathf.FloorToInt(x + chunk.Origin.x), Mathf.FloorToInt(y + chunk.Origin.y)];
+        }
+    }
+
+   // chunk.GenerateMesh(4, 5);
+}*/

@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class WorldData : MonoBehaviour
+public class WorldSettings : MonoBehaviour
 {
-    public static WorldData instance;
+    public static WorldSettings instance;
 
     public bool enableThreading;
 

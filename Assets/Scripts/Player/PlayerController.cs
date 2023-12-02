@@ -86,6 +86,7 @@ public class PlayerController : MonoBehaviour
         playerBase = GetComponent<PlayerBase>();
 
         worldManager = WorldManager.instance;
+        chunkLoader = ChunkLoader.instance;
 
         cameraTransform = Camera.main.transform;
         cameraDefaultPos = cameraTransform.localPosition;
@@ -94,7 +95,6 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
 
         gravity = worldManager.gravity;
-        chunkLoader = worldManager.gameObject.GetComponent<ChunkLoader>();
 
         movementState = MovementState.WALKING;
 
