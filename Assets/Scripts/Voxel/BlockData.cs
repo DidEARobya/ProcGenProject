@@ -11,6 +11,7 @@ public class BlockData
     public bool isSolid;
     public bool isTransparent;
 
+    public int farmedBlock;
     public Sprite displayImage;
     public int stackSize;
 

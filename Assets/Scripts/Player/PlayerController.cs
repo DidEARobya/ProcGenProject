@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     public Transform highlightBlock;
-    protected Vector3 placeBlockPos;
+    protected Vector3Int placeBlockPos;
 
     [SerializeField]
     public float sneakSpeed = 1f;
@@ -179,24 +179,24 @@ public class PlayerController : MonoBehaviour
         }
 
         float step = checkIncrement;
-        Vector3 lastPos = new Vector3();
+        Vector3Int lastPos = new Vector3Int();
 
         while(step < reach)
         {
-            Vector3 pos = cameraTransform.position + (cameraTransform.forward * step);
+            Vector3Int pos = Vector3Int.FloorToInt(cameraTransform.position + (cameraTransform.forward * step));
 
             if(chunkLoader.CheckForVoxel(pos))
             {
-                highlightBlock.position = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+                highlightBlock.position = new Vector3Int(pos.x, pos.y, pos.z);
                 placeBlockPos = lastPos;
 
-                targetedBlockID = chunkLoader.GetVoxelFromVector3(pos);
+                targetedBlockID = chunkLoader.GetVoxelFromVector3Int(pos);
 
                 highlightBlock.gameObject.SetActive(true);
                 return;
             }
 
-            lastPos = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+            lastPos = pos;
             step += checkIncrement;
         }
 
@@ -332,7 +332,7 @@ public class PlayerController : MonoBehaviour
     }
     private void DestroyBlock()
     {
-        chunkLoader.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
+        chunkLoader.GetChunkFromVector3(highlightBlock.position).EditVoxel(Vector3Int.FloorToInt(highlightBlock.position), 0);
         destroyTimer = 0;
     }
     private void PlaceBlock()
@@ -343,15 +343,15 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        int blockX = Mathf.FloorToInt(placeBlockPos.x);
+        int blockX = placeBlockPos.x;
         int playerX = Mathf.FloorToInt(transform.position.x);
 
-        int blockZ = Mathf.FloorToInt(placeBlockPos.z);
+        int blockZ = placeBlockPos.z;
         int playerZ = Mathf.FloorToInt(transform.position.z);
 
         if (blockX == playerX && blockZ == playerZ)
         {
-            int blockY = Mathf.FloorToInt(placeBlockPos.y);
+            int blockY = placeBlockPos.y;
             int playerY = Mathf.FloorToInt(transform.position.y);
 
             if (blockY == playerY || blockY == playerY - 1)

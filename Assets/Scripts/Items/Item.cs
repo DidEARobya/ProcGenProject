@@ -30,7 +30,15 @@ public class Item : MonoBehaviour
         gravity = worldManager.gravity;
         player = worldManager.player;
 
-        blockIndex = index;
+        if (worldManager.blockData[index].farmedBlock == 0)
+        {
+            blockIndex = index;
+        }
+        else
+        {
+            blockIndex = worldManager.blockData[index].farmedBlock;
+        }
+
         animationObject = new GameObject();
         animationObject.transform.position = transform.position;
         animationObject.transform.localScale = new Vector3(2, 2, 2);

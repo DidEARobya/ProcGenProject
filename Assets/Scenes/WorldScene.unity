@@ -585,6 +585,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: blockData.Array.data[8].farmedBlock
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[1].displayImage
       value: 
       objectReference: {fileID: 21300000, guid: 617bf30db41574745a1d878f3f0e12b7, type: 3}

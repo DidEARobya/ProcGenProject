@@ -8,7 +8,7 @@ public class Chunk
     public ChunkVector mapPosition;
 
     GameObject chunkObject;
-    public Vector3 position;
+    public Vector3Int position;
 
     MeshFilter meshFilter;
     Renderer meshRenderer;
@@ -61,7 +61,7 @@ public class Chunk
         chunkObject.transform.position = new Vector3(mapPosition.x * width, 0f, mapPosition.z * width);
         chunkObject.name = "Chunk: " + chunkObject.transform.position.x + "_" + chunkObject.transform.position.z;
 
-        position = chunkObject.transform.position;
+        position = Vector3Int.FloorToInt(chunkObject.transform.position);
 
         meshFilter = chunkObject.AddComponent<MeshFilter>();
 
@@ -97,7 +97,7 @@ public class Chunk
                 {
                     if (worldManager.blockData[voxelMap[x, y, z]].isSolid == true)
                     {
-                        AddVoxel(new Vector3(x, y, z));
+                        AddVoxel(new Vector3Int(x, y, z));
                     }
                 }
             }
@@ -117,7 +117,7 @@ public class Chunk
             {
                 for (int z = 0; z < width; z++)
                 {
-                    voxelMap[x, y, z] = chunkLoader.GetVoxel(new Vector3(x, y, z) + position);
+                    voxelMap[x, y, z] = chunkLoader.GetVoxel(new Vector3Int(x, y, z) + position);
                 }
             }
         }
@@ -130,11 +130,11 @@ public class Chunk
         }
     }
 
-    protected bool CheckVoxelIsTransparent(Vector3 pos)
+    protected bool CheckVoxelIsTransparent(Vector3Int pos)
     {
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
+        int x = pos.x;
+        int y = pos.y;
+        int z = pos.z;
 
         if (isVoxelInChunk(x, y, z) == false)
         {
@@ -144,11 +144,11 @@ public class Chunk
         return WorldManager.instance.blockData[voxelMap[x, y, z]].isTransparent;
     }
 
-    protected bool CheckVoxelIsSolid(Vector3 pos)
+    protected bool CheckVoxelIsSolid(Vector3Int pos)
     {
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
+        int x = pos.x;
+        int y = pos.y;
+        int z = pos.z;
 
         if (isVoxelInChunk(x, y, z) == false)
         {
@@ -157,14 +157,14 @@ public class Chunk
 
         return WorldManager.instance.blockData[voxelMap[x, y, z]].isSolid;
     }
-    public int GetVoxelFromVector3(Vector3 pos)
+    public int GetVoxelFromVector3(Vector3Int pos)
     {
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
+        int x = pos.x;
+        int y = pos.y;
+        int z = pos.z;
 
-        x -= Mathf.FloorToInt(position.x);
-        z -= Mathf.FloorToInt(position.z);
+        x -= position.x;
+        z -= position.z;
 
         if(x < 0 || x > worldManager.worldSizeInVoxels || z < 0 || z > worldManager.worldSizeInVoxels || y > worldManager.chunkHeight)
         {
@@ -173,11 +173,11 @@ public class Chunk
 
         return voxelMap[x, y, z];
     }
-    protected void AddVoxel(Vector3 pos)
+    protected void AddVoxel(Vector3Int pos)
     {
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
+        int x = pos.x;
+        int y = pos.y;
+        int z = pos.z;
 
         int blockID = voxelMap[x, y, z];
         //bool isTransparent = worldManager.blockData[blockID].isTransparent;
@@ -244,22 +244,22 @@ public class Chunk
         return true;
     }
 
-    public bool EditVoxel(Vector3 pos, int data)
+    public bool EditVoxel(Vector3Int pos, int data)
     {
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
+        int x = pos.x;
+        int y = pos.y;
+        int z = pos.z;
 
         if(y > height - 1)
         {
             return false;
         }
 
-        Vector3 itemPos = new Vector3(x, y, z);
+        Vector3Int itemPos = new Vector3Int(x, y, z);
         int oldData = 0;
 
-        x -= Mathf.FloorToInt(chunkObject.transform.position.x);
-        z -= Mathf.FloorToInt(chunkObject.transform.position.z);
+        x -= position.x;
+        z -= position.z;
 
         if (voxelMap[x, y, z] != 0)
         {
@@ -282,7 +282,7 @@ public class Chunk
         return true;
     }
 
-    private void SpawnItem(int blockID, Vector3 pos)
+    private void SpawnItem(int blockID, Vector3Int pos)
     {
         GameObject newItem = new GameObject();
         newItem.transform.position = new Vector3(pos.x + 0.5f, pos.y + 0.5f, pos.z + 0.5f);
@@ -293,13 +293,13 @@ public class Chunk
     }
     protected void UpdateSurroundingVoxels(int x, int y, int z)
     {
-        Vector3 currentVoxel = new Vector3(x, y, z);
+        Vector3Int currentVoxel = new Vector3Int(x, y, z);
 
         for (int i = 0; i < 6; i++)
         {
-            Vector3 temp = currentVoxel + VoxelData.faceChecks[i];
+            Vector3Int temp = currentVoxel + VoxelData.faceChecks[i];
 
-            if(isVoxelInChunk((int)temp.x, (int)temp.y, (int)temp.z) == false)
+            if(isVoxelInChunk(temp.x, temp.y, temp.z) == false)
             {
                 chunkLoader.toUpdate.Insert(0, (chunkLoader.GetChunkFromVector3(temp + position)));
             }
@@ -310,12 +310,6 @@ public class Chunk
         Mesh mesh = new Mesh();
 
         mesh.vertices = verts.ToArray();
-
-        //mesh.subMeshCount = 2;
-
-        //mesh.SetTriangles(tris.ToArray(), 0);
-        //mesh.SetTriangles(transparentTris.ToArray(), 1);
-
         mesh.triangles = tris.ToArray();
         mesh.uv = uvs.ToArray();
         mesh.normals = normals.ToArray();
@@ -328,7 +322,6 @@ public class Chunk
         vIndex = 0;
         verts.Clear();
         tris.Clear();
-        //transparentTris.Clear();
         uvs.Clear();
         normals.Clear();
     }
@@ -374,10 +367,10 @@ public class ChunkVector
         x = _x;
         z = _z;
     }
-    public ChunkVector(Vector3 pos)
+    public ChunkVector(Vector3Int pos)
     {
-        int _x = Mathf.FloorToInt(pos.x);
-        int _z = Mathf.FloorToInt(pos.z);
+        int _x = pos.x;
+        int _z = pos.z;
 
         x = _x / WorldManager.instance.chunkWidth;
         z = _z / WorldManager.instance.chunkWidth;
