@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class Structures
 { 
-    public static Queue<VoxelMod> GenerateVegetation(int index, Vector3 position, int minHeight, int maxHeight)
+    public static Queue<VoxelMod> GenerateVegetation(int index, Vector3Int position, int minHeight, int maxHeight)
     {
         switch(index)
         {
@@ -16,7 +16,7 @@ public static class Structures
 
         return new Queue<VoxelMod>();
     }
-    public static Queue<VoxelMod> MakeTree(Vector3 position, int minHeight, int maxHeight)
+    public static Queue<VoxelMod> MakeTree(Vector3Int position, int minHeight, int maxHeight)
     {
         Queue<VoxelMod> queue = new Queue <VoxelMod>();
 
@@ -33,19 +33,19 @@ public static class Structures
             {
                 for (int z = -1; z < 2; z++)
                 {
-                    queue.Enqueue(new VoxelMod(new Vector3(position.x + x, position.y + height + y, position.z + z), 6));
+                    queue.Enqueue(new VoxelMod(new Vector3Int(position.x + x, position.y + height + y, position.z + z), 6));
                 }
             }
         }
 
         for (int i = 1; i <= height; i++)
         {
-            queue.Enqueue(new VoxelMod(new Vector3(position.x, position.y + i, position.z), 5));
+            queue.Enqueue(new VoxelMod(new Vector3Int(position.x, position.y + i, position.z), 5));
         }
 
         return queue;
     }
-    public static Queue<VoxelMod> MakeCacti(Vector3 position, int minHeight, int maxHeight)
+    public static Queue<VoxelMod> MakeCacti(Vector3Int position, int minHeight, int maxHeight)
     {
         Queue<VoxelMod> queue = new Queue<VoxelMod>();
 
@@ -58,7 +58,7 @@ public static class Structures
 
         for (int i = 1; i <= height; i++)
         {
-            queue.Enqueue(new VoxelMod(new Vector3(position.x, position.y + i, position.z), 7));
+            queue.Enqueue(new VoxelMod(new Vector3Int(position.x, position.y + i, position.z), 7));
         }
 
         return queue;

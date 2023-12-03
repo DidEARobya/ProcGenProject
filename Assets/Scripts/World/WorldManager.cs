@@ -14,8 +14,8 @@ public class WorldManager : MonoBehaviour
     public List<Item> items = new List<Item>();
 
     public PlayerController player;
-    public Vector3 spawnTemp;
-    public Vector3 spawnPosition;
+    public Vector3Int spawnTemp;
+    public Vector3Int   spawnPosition;
 
     public float gravity = -13f;
 
@@ -76,7 +76,7 @@ public class WorldManager : MonoBehaviour
                 viewDistanceInChunks = worldSettings.viewDistanceInChunks;
             }
 
-            spawnTemp = new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth);
+            spawnTemp = Vector3Int.FloorToInt(new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth));
             spawnPosition = spawnTemp;
 
             maxHeight = float.MinValue;
@@ -103,7 +103,7 @@ public class WorldManager : MonoBehaviour
             }
         }
     }
-    public void SpawnPlayer(Vector3 position)
+    public void SpawnPlayer(Vector3Int position)
     {
         player.transform.position = position;
     }

@@ -312,12 +312,13 @@ public class ChunkLoader : MonoBehaviour
             activeChunks.Remove(lastActive[i]);
         }
     }
-    public int GetVoxel(Vector3 pos)
+    public int GetVoxel(Vector3Int pos)
     {
-        int xPos = Mathf.FloorToInt(pos.x);
-        int yPos = Mathf.FloorToInt(pos.y);
+        int xPos = pos.x;
+        int yPos = pos.y;
 
-        Vector2 currentPos = new Vector2(pos.x, pos.z);
+        Vector2Int currentPos = new Vector2Int(pos.x, pos.z);
+
         //Generic
         if(IsVoxelInWorld(pos) == false)
         {
@@ -361,7 +362,7 @@ public class ChunkLoader : MonoBehaviour
 
         if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
         {
-            worldManager.spawnPosition = new Vector3(pos.x, pos.y + 4, pos.z);
+            worldManager.spawnPosition = new Vector3Int(pos.x, pos.y + 4, pos.z);
         }
 
 
@@ -415,21 +416,21 @@ public class ChunkLoader : MonoBehaviour
 
     public bool CheckForVoxel(Vector3 pos)
     {
-        ChunkVector vector = new ChunkVector(pos);
+        ChunkVector vector = new ChunkVector(Vector3Int.FloorToInt(pos));
 
-        if(IsVoxelInWorld(pos) == false)
+        if(IsVoxelInWorld(Vector3Int.FloorToInt(pos)) == false)
         {
             return false;
         }
 
         if (chunks[vector.x, vector.z] != null && chunks[vector.x, vector.z].isEditable == true)
         {
-            return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(pos)].isSolid;
+            return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(Vector3Int.FloorToInt(pos))].isSolid;
         }
 
-        return worldManager.blockData[GetVoxel(pos)].isSolid;
+        return worldManager.blockData[GetVoxel(Vector3Int.FloorToInt(pos))].isSolid;
     }
-    public bool CheckForTransparentVoxel(Vector3 pos)
+    public bool CheckForTransparentVoxel(Vector3Int pos)
     {
         ChunkVector vector = new ChunkVector(pos);
 
@@ -445,7 +446,7 @@ public class ChunkLoader : MonoBehaviour
 
         return worldManager.blockData[GetVoxel(pos)].isTransparent;
     }
-    public int GetVoxelFromVector3(Vector3 pos)
+    public int GetVoxelFromVector3Int(Vector3Int pos)
     {
         Chunk temp = GetChunkFromVector3(pos);
 
@@ -465,7 +466,7 @@ public class ChunkLoader : MonoBehaviour
 
         return false;
     }
-    protected bool IsVoxelInWorld(Vector3 pos)
+    protected bool IsVoxelInWorld(Vector3Int pos)
     {
         if (pos.x >= 0 && pos.x < voxelCount && pos.y >= 0 && pos.y < chunkHeight && pos.z >= 0 && pos.z < voxelCount)
         {
@@ -478,10 +479,10 @@ public class ChunkLoader : MonoBehaviour
 
 public class VoxelMod
 {
-    public Vector3 position;
+    public Vector3Int position;
     public int id;
 
-    public VoxelMod(Vector3 _position, int _id)
+    public VoxelMod(Vector3Int _position, int _id)
     {
         position = _position;
         id = _id;
