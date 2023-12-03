@@ -15,9 +15,6 @@ public class ChunkLoader : MonoBehaviour
     [SerializeField]
     public BiomeData[] biomes;
 
-    private new Camera camera;
-    private Vector3 cameraPos;
-
     WorldManager worldManager;
     protected float[,] noiseMap;
 
@@ -246,7 +243,7 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
-        if (x < 0 || x > worldManager.worldSizeInChunks - 1 || z < 0 || z > worldManager.worldSizeInChunks - 1)
+        if (x < 0 || x > worldManager.worldSizeInChunks || z < 0 || z > worldManager.worldSizeInChunks)
         {
             return null;
         }
@@ -461,7 +458,7 @@ public class ChunkLoader : MonoBehaviour
     }
     protected bool IsChunkInWorld(ChunkVector pos)
     {
-        if (pos.x > 0 && pos.x < chunkCount - 1 && pos.z > 0 && pos.z < chunkCount - 1)
+        if (pos.x >= 0 && pos.x < chunkCount && pos.z >= 0 && pos.z < chunkCount)
         {
             return true;
         }
