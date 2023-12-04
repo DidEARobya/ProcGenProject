@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Threading;
+using TreeEditor;
 using UnityEngine;
+using UnityEngine.XR;
 
 
 public class ChunkLoader : MonoBehaviour
@@ -314,104 +316,151 @@ public class ChunkLoader : MonoBehaviour
     }
     public int GetVoxel(Vector3Int pos)
     {
-        int xPos = pos.x;
-        int yPos = pos.y;
-
-        Vector2Int currentPos = new Vector2Int(pos.x, pos.z);
-
-        //Generic
-        if(IsVoxelInWorld(pos) == false)
-        {
-            return 0;
-        }
-
-        //Biome selection
-        int solidGroundHeight = 24;
-
-        float biomesTotalHeight = 0;
-        int count = 0;
-
-        float strongestPerlinWeight = 0;
-        int strongestBiome = 0;
-
-        for(int i = 0; i < biomes.Length; i++)
-        {
-            float weight = Perlin.Get2DPerlin(currentPos, biomes[i].scale, biomes[i].offset);
-
-            if(weight > strongestPerlinWeight)
-            {
-                strongestPerlinWeight = weight;
-                strongestBiome = i;
-            }
-
-            float height = biomes[i].terrainHeight * Perlin.Get2DPerlin(currentPos, biomes[i].terrainScale, 0) * weight;
-
-            if(height > 0)
-            {
-                biomesTotalHeight += height;
-                count++;
-            }
-        }
-
-        BiomeData biome = biomes[strongestBiome];
-        float averageHeight = biomesTotalHeight / count;
-
-        //First Pass
-        int terrainHeight = Mathf.FloorToInt(averageHeight + solidGroundHeight);
         int voxelValue = 0;
 
-        if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
-        {
-            worldManager.spawnPosition = new Vector3Int(pos.x, pos.y + 4, pos.z);
-        }
+        int xPos = pos.x;
+        int yPos = pos.y; 
+        int zPos = pos.z;
 
+        if(worldManager.extremeTerrain == true)
+        {
+            //Fixed Pass
 
-        if (yPos < terrainHeight - 4)
-        {
-            voxelValue = 1;
-        }
-        else if (yPos < terrainHeight)
-        {
-            voxelValue = biome.subSurfaceBlock;
-        }
-        else if(yPos == terrainHeight)
-        {
-            voxelValue =  biome.surfaceBlock;
+            if (IsVoxelInWorld(pos) == false)
+            {
+                return 0;
+            }
+
+            Vector2Int pos2 = new Vector2Int(xPos, zPos);
+
+            //Terrain Pass
+
+            float noise = Perlin.GetHeightMapPerlin(pos2, worldManager.scale);
+
+            int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
+
+            if (yPos > terrainHeight)
+            {
+                return 0;
+            }
+
+            if (yPos < terrainHeight - 4)
+            {
+                voxelValue = 1;
+            }
+            else if (yPos < terrainHeight)
+            {
+                voxelValue = 2;
+            }
+            else if (yPos == terrainHeight)
+            {
+                voxelValue = 3;
+            }
+            else
+            {
+                return 0;
+            }
+
+            return voxelValue;
         }
         else
         {
-            return 0;
-        }
+            Vector2Int currentPos = new Vector2Int(pos.x, pos.z);
 
-        //Second Pass
-        if(voxelValue == 1)
-        {
-            foreach (Lode lode in biome.lodes)
+            //Generic
+            if (IsVoxelInWorld(pos) == false)
             {
-                if (yPos > lode.minHeight && yPos < lode.maxHeight)
+                return 0;
+            }
+
+            //Biome selection
+            int solidGroundHeight = 24;
+
+            float biomesTotalHeight = 0;
+            int count = 0;
+
+            float strongestPerlinWeight = 0;
+            int strongestBiome = 0;
+
+            for (int i = 0; i < biomes.Length; i++)
+            {
+                float weight = Perlin.Get2DPerlin(currentPos, biomes[i].scale, biomes[i].offset);
+
+                if (weight > strongestPerlinWeight)
                 {
-                    if (Perlin.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
+                    strongestPerlinWeight = weight;
+                    strongestBiome = i;
+                }
+
+                float height = biomes[i].terrainHeight * Perlin.Get2DPerlin(currentPos, biomes[i].terrainScale, 0) * weight;
+
+                if (height > 0)
+                {
+                    biomesTotalHeight += height;
+                    count++;
+                }
+            }
+
+            BiomeData biome = biomes[strongestBiome];
+            float averageHeight = biomesTotalHeight / count;
+
+            //First Pass
+            int terrainHeight = Mathf.FloorToInt(averageHeight + solidGroundHeight);
+
+            if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
+            {
+                worldManager.spawnPosition = new Vector3Int(pos.x, pos.y + 4, pos.z);
+            }
+
+
+            if (yPos < terrainHeight - 4)
+            {
+                voxelValue = 1;
+            }
+            else if (yPos < terrainHeight)
+            {
+                voxelValue = biome.subSurfaceBlock;
+            }
+            else if (yPos == terrainHeight)
+            {
+                voxelValue = biome.surfaceBlock;
+            }
+            else
+            {
+                return 0;
+            }
+
+            //Second Pass
+            if (voxelValue == 1)
+            {
+                foreach (Lode lode in biome.lodes)
+                {
+                    if (yPos > lode.minHeight && yPos < lode.maxHeight)
                     {
-                        voxelValue = lode.blockID;
+                        if (Perlin.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
+                        {
+                            voxelValue = lode.blockID;
+                        }
                     }
                 }
             }
-        }
 
-        //Third pass
+            //Third pass
 
-        if(yPos == terrainHeight && biome.generateVegetation == true)
-        {
-            if (Perlin.Get2DPerlin(currentPos, biome.vegetationZoneScale, 0) > biome.vegetationZoneThreshold)
+            if (yPos == terrainHeight && biome.generateVegetation == true)
             {
-                if(Perlin.Get2DPerlin(currentPos, biome.vegetationPlacementScale, 0) > biome.vegetationPlacementThreshold)
+                if (Perlin.Get2DPerlin(currentPos, biome.vegetationZoneScale, 0) > biome.vegetationZoneThreshold)
                 {
-                   modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize));
+                    if (Perlin.Get2DPerlin(currentPos, biome.vegetationPlacementScale, 0) > biome.vegetationPlacementThreshold)
+                    {
+                        modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize));
+                    }
                 }
             }
-        }
 
-        return voxelValue;
+            return voxelValue;
+        }
+         
     }
 
     public bool CheckForVoxel(Vector3 pos)
