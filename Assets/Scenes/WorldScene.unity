@@ -454,19 +454,35 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: seed
-      value: 32
+      value: 33
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: scale
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: player
       value: 
       objectReference: {fileID: 1597189308}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: octaves
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: lacunarity
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: chunkHeight
-      value: 128
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: persistence
-      value: 1.75
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: extremeTerrain
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: enableThreading
@@ -478,7 +494,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: worldSizeInChunks
-      value: 30
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.size

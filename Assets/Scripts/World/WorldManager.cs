@@ -9,6 +9,7 @@ public class WorldManager : MonoBehaviour
 
     private WorldSettings worldSettings;
 
+    public bool extremeTerrain;
     public bool enableThreading;
 
     public List<Item> items = new List<Item>();
@@ -32,10 +33,10 @@ public class WorldManager : MonoBehaviour
     float maxHeight;
     float minHeight;
 
-    public float scale = 0.1f;
-    public float lacunarity = 0.246f;
+    public float scale = 0.01f;
+    public float lacunarity = 2.1f;
     public float persistence = 0.5f;
-    public int octaves = 8;
+    public int octaves = 4;
     public int seed = 32;
     public int seedOffset = 0;
 
