@@ -37,7 +37,6 @@ public class WorldManager : MonoBehaviour
 
             if (worldSettings != null)
             {
-                Debug.Log("World Settings");
                 worldData = new WorldData(
                     worldSettings.extremeTerrain,
                     worldSettings.enableThreading,
@@ -54,7 +53,6 @@ public class WorldManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("No World Settings");
                 worldData = new WorldData(
                     true,
                     true,
@@ -62,7 +60,7 @@ public class WorldManager : MonoBehaviour
                     2,
                     0.5f,
                     4,
-                    0,
+                    24,
                     16,
                     128,
                     30,

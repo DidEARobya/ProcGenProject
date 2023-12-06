@@ -8,30 +8,25 @@ public class BiomeData :ScriptableObject
     [Header("Data")]
     public string biomeName;
 
+    [Range(-1f, 1f)]
     public float tempMin;
+    [Range(-1f, 1f)]
     public float tempMax;
 
+    [Range(-1f, 1f)]
     public float heightMin;
+    [Range(-1f, 1f)]
     public float heightMax;
 
-    public int offset;
-    public float scale;
-
     [Header("Terrain")]
-    public int terrainHeight;
-    public float terrainScale;
-
     public int surfaceBlock;
     public int subSurfaceBlock;
 
     [Header("Vegetation")]
     public int vegetationType;
 
-    public float vegetationZoneScale;
     [Range(0.1f, 1f)]
     public float vegetationZoneThreshold;
-
-    public float vegetationPlacementScale;
     [Range(0.1f, 1f)]
     public float vegetationPlacementThreshold;
 
