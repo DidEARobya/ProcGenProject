@@ -9,7 +9,7 @@ public class BlockData
     public string blockName;
 
     public bool isSolid;
-    public bool isTransparent;
+    public bool hasVisibleNeighbors;
 
     public int farmedBlock;
     public Sprite displayImage;
