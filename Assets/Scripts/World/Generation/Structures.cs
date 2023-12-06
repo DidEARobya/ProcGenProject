@@ -20,7 +20,7 @@ public static class Structures
     {
         Queue<VoxelMod> queue = new Queue <VoxelMod>();
 
-        int height = (int)(maxHeight * Perlin.GetHeightMapPerlin(new Vector2Int(position.x, position.y), 0));
+        int height = (int)(maxHeight * Perlin.GetVegetationNoise(new Vector2Int(position.x, position.y)));
 
         if(height < minHeight)
         {
@@ -49,7 +49,7 @@ public static class Structures
     {
         Queue<VoxelMod> queue = new Queue<VoxelMod>();
 
-        int height = (int)(maxHeight * Perlin.GetHeightMapPerlin(new Vector2Int(position.x, position.y), 0));
+        int height = (int)(maxHeight * Perlin.GetVegetationNoise(new Vector2Int(position.x, position.y)));
 
         if (height < minHeight)
         {

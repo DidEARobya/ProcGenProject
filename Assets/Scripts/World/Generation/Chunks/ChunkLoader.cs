@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.XR;
 
 
 public class ChunkLoader : MonoBehaviour
@@ -321,60 +322,85 @@ public class ChunkLoader : MonoBehaviour
         int yPos = pos.y; 
         int zPos = pos.z;
 
-        if(worldData.extremeTerrain == true)
+        //Fixed Pass
+
+        if (IsVoxelInWorld(pos) == false)
         {
-            //Fixed Pass
+            return 0;
+        }
 
-            if (IsVoxelInWorld(pos) == false)
+        Vector2Int pos2 = new Vector2Int(xPos, zPos);
+
+        float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale);
+
+        int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
+
+        if (yPos > terrainHeight)
+        {
+            if (yPos > worldData.seaLevel)
             {
                 return 0;
             }
 
-            Vector2Int pos2 = new Vector2Int(xPos, zPos);
-
-            float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale);
-
-            int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
-
-            if (yPos > terrainHeight)
+            if (yPos == worldData.seaLevel)
             {
-                if (yPos > worldData.seaLevel)
-                {
-                    return 0;
-                }
-
-                if (yPos == worldData.seaLevel)
-                {
-                    return 10;
-                }
-
-                return 9;
+                return 10;
             }
 
-            int biomeIndex = Perlin.GetBiomeIndex(pos2, biomes, noise);
+            return 9;
+        }
 
-            //Terrain Pass
+        BiomeData biome = biomes[Perlin.GetBiomeIndex(pos2, biomes, noise)];
 
-            if (yPos < terrainHeight - 4)
-            {
-                voxelValue = 1;
-            }
-            else if (yPos < terrainHeight)
-            {
-                voxelValue = biomes[biomeIndex].subSurfaceBlock;
-            }
-            else if (yPos == terrainHeight)
-            {
-                voxelValue = biomes[biomeIndex].surfaceBlock;
-            }
-            else
-            {
-                return 0;
-            }
+        //Terrain Pass
 
-            return voxelValue;
+        if (yPos < terrainHeight - 4)
+        {
+            voxelValue = 1;
+        }
+        else if (yPos < terrainHeight)
+        {
+            voxelValue = biome.subSurfaceBlock;
+        }
+        else if (yPos == terrainHeight)
+        {
+            voxelValue = biome.surfaceBlock;
         }
         else
+        {
+            return 0;
+        }
+
+        //Lode Pass
+        if (voxelValue == 1)
+        {
+            foreach (Lode lode in biome.lodes)
+            {
+                if (yPos > lode.minHeight && yPos < lode.maxHeight)
+                {
+                    if (Perlin.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
+                    {
+                        voxelValue = lode.blockID;
+                    }
+                }
+            }
+        }
+
+        //Vegetation pass
+        /*if (yPos == terrainHeight && biome.generateVegetation == true)
+        {
+            if (Perlin.GetVegetationNoise(pos2) > biome.vegetationZoneThreshold)
+            {
+                if (Perlin.GetVegetationNoise(pos2) > biome.vegetationPlacementThreshold)
+                {
+                    modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize));
+                }
+            }
+        }*/
+
+        return voxelValue;
+
+        /*else
         {
             Vector2Int currentPos = new Vector2Int(pos.x, pos.z);
 
@@ -470,7 +496,7 @@ public class ChunkLoader : MonoBehaviour
             }
 
             return voxelValue;
-        }
+        }*/
          
     }
 

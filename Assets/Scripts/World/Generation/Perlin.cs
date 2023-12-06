@@ -61,20 +61,22 @@ public static class Perlin
 
     public static float GetTemperatureNoise(Vector2Int position)
     {
+        float seedVal = WorldManager.instance.GenerateSeedValue();
         WorldData worldData = WorldManager.instance.worldData;
 
-        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000;
-        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000;
+        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + seedVal;
+        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + seedVal;
 
         return Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
     }
 
-    public static float Get2DPerlin(Vector2Int position, float scale, float offset)
+    public static float GetVegetationNoise(Vector2Int position)
     {
         float seedVal = WorldManager.instance.GenerateSeedValue();
+        WorldData worldData = WorldManager.instance.worldData;
 
-        float xSample = ((position.x + 0.1f) / WorldManager.instance.worldData.chunkWidth) * scale + seedVal + offset;
-        float ySample = ((position.y + 0.1f) / WorldManager.instance.worldData.chunkWidth) * scale + seedVal + offset;
+        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) + 5000 + seedVal;
+        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) + 5000 + seedVal;
 
         return Mathf.PerlinNoise(xSample, ySample);
     }

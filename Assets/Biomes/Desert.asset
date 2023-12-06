@@ -15,18 +15,12 @@ MonoBehaviour:
   biomeName: Desert
   tempMin: 0.4
   tempMax: 1
-  heightMin: -1
-  heightMax: -0.4
-  offset: 6545
-  scale: 0.032
-  terrainHeight: 22
-  terrainScale: 0.1
+  heightMin: 0.2
+  heightMax: 1
   surfaceBlock: 4
   subSurfaceBlock: 4
   vegetationType: 1
-  vegetationZoneScale: 1.3
   vegetationZoneThreshold: 0.867
-  vegetationPlacementScale: 15
   vegetationPlacementThreshold: 0.638
   generateVegetation: 1
   minSize: 1

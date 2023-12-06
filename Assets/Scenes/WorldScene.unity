@@ -398,7 +398,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 424badd99681020498b4e5670a2320b9, type: 2}
     - target: {fileID: 1425702727256796787, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: biomes.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1425702727256796787, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: biomes.Array.data[0]
@@ -412,6 +412,10 @@ PrefabInstance:
       propertyPath: biomes.Array.data[2]
       value: 
       objectReference: {fileID: 11400000, guid: 12c0a45a885ef5f4dbe526acd2e914ce, type: 2}
+    - target: {fileID: 1425702727256796787, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: biomes.Array.data[3]
+      value: 
+      objectReference: {fileID: 11400000, guid: d80fbb674cbdec14999972f851c9746a, type: 2}
     - target: {fileID: 3697748418688074997, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
