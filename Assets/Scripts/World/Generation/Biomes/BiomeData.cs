@@ -7,6 +7,13 @@ public class BiomeData :ScriptableObject
 {
     [Header("Data")]
     public string biomeName;
+
+    public float tempMin;
+    public float tempMax;
+
+    public float heightMin;
+    public float heightMax;
+
     public int offset;
     public float scale;
 

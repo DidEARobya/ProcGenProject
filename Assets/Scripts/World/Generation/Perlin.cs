@@ -2,26 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Schema;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public static class Perlin
 {
     public static float GetHeightMapPerlin(Vector2Int position, float scale)
     {
-        float seedVal = WorldManager.instance.GenerateSeedValue();
+        WorldData worldData = WorldManager.instance.worldData;
 
-        int octaves = WorldManager.instance.worldData.octaves;
-        float persistence = WorldManager.instance.worldData.persistence;
-        float lacunarity = WorldManager.instance.worldData.lacunarity;
+        float[] offsets = new float[worldData.octaves];
+
+        for (int u = 0; u < worldData.octaves; u++)
+        {
+            offsets[u] = WorldManager.instance.GenerateSeedValue();
+        }
+
+        int octaves = worldData.octaves;
+        float persistence = worldData.persistence;
+        float lacunarity = worldData.lacunarity;
 
         float noise = 0;
         float amplitude = 1;
         float frequency = 1;
+
         for (int i = 0; i < octaves; i++)
         {
-            float xSample = ((position.x + 0.1f) / WorldManager.instance.worldData.chunkWidth) * scale * frequency + seedVal;
-            float ySample = ((position.y + 0.1f) / WorldManager.instance.worldData.chunkWidth) * scale * frequency + seedVal;
+            float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * scale * frequency + offsets[i];
+            float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * scale * frequency + offsets[i];
 
             float perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
             noise += perlinValue * amplitude;
@@ -31,6 +38,35 @@ public static class Perlin
         }
 
         return noise;
+    }
+
+    public static int GetBiomeIndex(Vector2Int position, BiomeData[] biomes, float heightNoise) 
+    {
+        int biomeIndex = 0;
+        float tempNoise = GetTemperatureNoise(position);
+
+        for(int i = 0; i < biomes.Length; i++)
+        {
+            if(heightNoise > biomes[i].heightMin && heightNoise < biomes[i].heightMax)
+            {
+                if(tempNoise > biomes[i].tempMin && tempNoise < biomes[i].tempMax)
+                {
+                    biomeIndex = i;
+                }
+            }
+        }
+
+        return biomeIndex;
+    }
+
+    public static float GetTemperatureNoise(Vector2Int position)
+    {
+        WorldData worldData = WorldManager.instance.worldData;
+
+        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000;
+        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000;
+
+        return Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
     }
 
     public static float Get2DPerlin(Vector2Int position, float scale, float offset)

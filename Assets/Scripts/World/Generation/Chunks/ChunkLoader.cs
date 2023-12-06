@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Security.Cryptography;
 using System.Threading;
-using TreeEditor;
 using UnityEngine;
-using UnityEngine.XR;
 
 
 public class ChunkLoader : MonoBehaviour
@@ -335,20 +332,18 @@ public class ChunkLoader : MonoBehaviour
 
             Vector2Int pos2 = new Vector2Int(xPos, zPos);
 
-            //Terrain Pass
-
             float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale);
 
             int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
 
             if (yPos > terrainHeight)
             {
-                if(yPos > worldData.seaLevel)
+                if (yPos > worldData.seaLevel)
                 {
                     return 0;
                 }
 
-                if(yPos == worldData.seaLevel)
+                if (yPos == worldData.seaLevel)
                 {
                     return 10;
                 }
@@ -356,17 +351,21 @@ public class ChunkLoader : MonoBehaviour
                 return 9;
             }
 
+            int biomeIndex = Perlin.GetBiomeIndex(pos2, biomes, noise);
+
+            //Terrain Pass
+
             if (yPos < terrainHeight - 4)
             {
                 voxelValue = 1;
             }
             else if (yPos < terrainHeight)
             {
-                voxelValue = 2;
+                voxelValue = biomes[biomeIndex].subSurfaceBlock;
             }
             else if (yPos == terrainHeight)
             {
-                voxelValue = 3;
+                voxelValue = biomes[biomeIndex].surfaceBlock;
             }
             else
             {
