@@ -10,15 +10,22 @@ public class WorldSettings : MonoBehaviour
 {
     public static WorldSettings instance;
 
+    public bool extremeTerrain;
     public bool enableThreading;
 
+    public float scale = 0.01f;
+    public float lacunarity = 2.1f;
+    public float persistence = 0.5f;
+    public int octaves = 4;
     public int seed = 32;
     public int seedOffset = 0;
 
-    public int worldSizeInChunks = 20;
     public int chunkWidth = 16;
     public int chunkHeight = 64;
 
+    public int worldSizeInChunks = 20;
+
+    public int loadDistance = 10;
     public int viewDistanceInChunks = 5;
 
     [SerializeField]

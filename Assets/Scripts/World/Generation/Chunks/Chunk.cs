@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -14,29 +15,21 @@ public class Chunk
     Renderer meshRenderer;
 
     WorldManager worldManager;
+    WorldData worldData;
+
     ChunkLoader chunkLoader;
 
     public Queue<VoxelMod> modifications = new Queue<VoxelMod>();
 
     protected int width;
-    public int Width {  get { return width; } }
-
     protected int height;
-    public int Height { get { return height; } }
-
-    protected float[,] data;
-    public float[,] Data 
-    { 
-        get { return data; } 
-        set { data = value; }
-    }
 
     int vIndex = 0;
 
     Material[] materials = new Material[2];
     private List<Vector3> verts = new List<Vector3>();
     private List<int> tris = new List<int>();
-    //private List<int> transparentTris = new List<int>();
+    private List<int> transparentTris = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
     private List<Vector3> normals = new List<Vector3>();
 
@@ -48,6 +41,7 @@ public class Chunk
     {
         mapPosition = mapPos;
         worldManager = WorldManager.instance;
+        worldData = worldManager.worldData;
         chunkLoader = ChunkLoader.instance;
 
         width = _width;
@@ -68,9 +62,9 @@ public class Chunk
         meshRenderer = chunkObject.AddComponent<MeshRenderer>();
 
         materials[0] = worldManager.blockMaterial;
-        //materials[1] = worldManager.transparentBlockMaterial;
+        materials[1] = worldManager.transparentBlockMaterial;
 
-        meshRenderer.material = materials[0];
+        meshRenderer.materials = materials;
 
         voxelMap = new int[width, height, width];
 
@@ -130,7 +124,7 @@ public class Chunk
         }
     }
 
-    protected bool CheckVoxelIsTransparent(Vector3Int pos)
+    protected bool CheckIfVoxelHasVisibleNeighbors(Vector3Int pos)
     {
         int x = pos.x;
         int y = pos.y;
@@ -138,10 +132,10 @@ public class Chunk
 
         if (isVoxelInChunk(x, y, z) == false)
         {
-            return chunkLoader.CheckForTransparentVoxel(pos + position);
+            return chunkLoader.CheckForVisibleVoxel(pos + position);
         }
 
-        return WorldManager.instance.blockData[voxelMap[x, y, z]].isTransparent;
+        return WorldManager.instance.blockData[voxelMap[x, y, z]].hasVisibleNeighbors;
     }
 
     protected bool CheckVoxelIsSolid(Vector3Int pos)
@@ -166,7 +160,7 @@ public class Chunk
         x -= position.x;
         z -= position.z;
 
-        if(x < 0 || x > worldManager.worldSizeInVoxels || z < 0 || z > worldManager.worldSizeInVoxels || y > worldManager.chunkHeight)
+        if(x < 0 || x > worldData.worldSizeInVoxels || z < 0 || z > worldData.worldSizeInVoxels || y > worldData.chunkHeight)
         {
             return 0;
         }
@@ -180,11 +174,11 @@ public class Chunk
         int z = pos.z;
 
         int blockID = voxelMap[x, y, z];
-        //bool isTransparent = worldManager.blockData[blockID].isTransparent;
+        bool hasVisibleNeighbors = worldManager.blockData[blockID].hasVisibleNeighbors;
 
         for (int i = 0; i < 6; i++)
         {
-            if (CheckVoxelIsSolid(pos + VoxelData.faceChecks[i]) == false)
+            if (CheckVoxelIsSolid(pos + VoxelData.faceChecks[i]) == false && CheckIfVoxelHasVisibleNeighbors(pos + VoxelData.faceChecks[i]) == true)
             {
                 for (int u = 0; u < 4; u++)
                 {
@@ -194,15 +188,15 @@ public class Chunk
 
                 AddTexture(WorldManager.instance.blockData[blockID].GetTextureID(i));
 
-                //if(isTransparent == false)
-                //{
+                if (hasVisibleNeighbors == false)
+                {
                     tris.Add(vIndex);
                     tris.Add(vIndex + 1);
                     tris.Add(vIndex + 2);
                     tris.Add(vIndex + 2);
                     tris.Add(vIndex + 1);
                     tris.Add(vIndex + 3);
-                /*}
+                }
                 else
                 {
                     transparentTris.Add(vIndex);
@@ -211,7 +205,7 @@ public class Chunk
                     transparentTris.Add(vIndex + 2);
                     transparentTris.Add(vIndex + 1);
                     transparentTris.Add(vIndex + 3);
-                }*/
+                }
 
                 vIndex += 4;
             }
@@ -236,7 +230,7 @@ public class Chunk
 
     bool isVoxelInChunk(int x, int y, int z)
     {
-        if(x < 0 || x > worldManager.chunkWidth - 1 || y < 0 || y > worldManager.chunkHeight - 1 || z < 0 || z > worldManager.chunkWidth - 1)
+        if(x < 0 || x > worldData.chunkWidth - 1 || y < 0 || y > worldData.chunkHeight - 1 || z < 0 || z > worldData.chunkWidth - 1)
         {
             return false;
         }
@@ -310,7 +304,11 @@ public class Chunk
         Mesh mesh = new Mesh();
 
         mesh.vertices = verts.ToArray();
-        mesh.triangles = tris.ToArray();
+
+        mesh.subMeshCount = 2;
+        mesh.SetTriangles(tris.ToArray(), 0);
+        mesh.SetTriangles(transparentTris.ToArray(), 1);
+
         mesh.uv = uvs.ToArray();
         mesh.normals = normals.ToArray();
 
@@ -322,6 +320,7 @@ public class Chunk
         vIndex = 0;
         verts.Clear();
         tris.Clear();
+        transparentTris.Clear();
         uvs.Clear();
         normals.Clear();
     }
@@ -372,8 +371,8 @@ public class ChunkVector
         int _x = pos.x;
         int _z = pos.z;
 
-        x = _x / WorldManager.instance.chunkWidth;
-        z = _z / WorldManager.instance.chunkWidth;
+        x = _x / WorldManager.instance.worldData.chunkWidth;
+        z = _z / WorldManager.instance.worldData.chunkWidth;
     }
     public bool Equals(ChunkVector other)
     {

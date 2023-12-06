@@ -18,6 +18,8 @@ public class ChunkLoader : MonoBehaviour
     public BiomeData[] biomes;
 
     WorldManager worldManager;
+    WorldData worldData;
+
     protected float[,] noiseMap;
 
     protected int chunkCount;
@@ -55,20 +57,20 @@ public class ChunkLoader : MonoBehaviour
             instance = this;
 
             worldManager = WorldManager.instance;
+            worldData = worldManager.worldData;
             player = worldManager.player.transform;
 
-            chunkCount = worldManager.worldSizeInChunks;
-            voxelCount = worldManager.worldSizeInVoxels;
+            chunkCount = worldData.worldSizeInChunks;
+            voxelCount = worldData.worldSizeInVoxels;
 
-            chunkWidth = worldManager.chunkWidth;
-            chunkHeight = worldManager.chunkHeight;
+            chunkWidth = worldData.chunkWidth;
+            chunkHeight = worldData.chunkHeight;
 
-            viewDistance = worldManager.viewDistanceInChunks;
+            viewDistance = worldData.viewDistanceInChunks;
 
             chunks = new Chunk[chunkCount, chunkCount];
-            noiseMap = worldManager.noiseMap;
 
-            if (worldManager.enableThreading == true)
+            if (worldData.enableThreading == true)
             {
                 chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
                 chunkUpdateThread.Start();
@@ -106,7 +108,7 @@ public class ChunkLoader : MonoBehaviour
             }
         }
 
-        if (worldManager.enableThreading == false)
+        if (worldData.enableThreading == false)
         {
             if (applyingMods == false)
             {
@@ -201,7 +203,7 @@ public class ChunkLoader : MonoBehaviour
     }
     private void OnDisable()
     {
-        if (worldManager.enableThreading == true)
+        if (worldData.enableThreading == true)
         {
             chunkUpdateThread.Abort();
         }
@@ -245,7 +247,7 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
-        if (x < 0 || x > worldManager.worldSizeInChunks || z < 0 || z > worldManager.worldSizeInChunks)
+        if (x < 0 || x > worldData.worldSizeInChunks || z < 0 || z > worldData.worldSizeInChunks)
         {
             return null;
         }
@@ -257,7 +259,7 @@ public class ChunkLoader : MonoBehaviour
         int x = Mathf.FloorToInt(pos.x / chunkWidth);
         int z = Mathf.FloorToInt(pos.z / chunkWidth);
 
-        if(x < 0 || x > worldManager.worldSizeInChunks - 1 || z < 0 || z > worldManager.worldSizeInChunks - 1)
+        if(x < 0 || x > worldData.worldSizeInChunks - 1 || z < 0 || z > worldData.worldSizeInChunks - 1)
         {
             return null;
         }
@@ -322,7 +324,7 @@ public class ChunkLoader : MonoBehaviour
         int yPos = pos.y; 
         int zPos = pos.z;
 
-        if(worldManager.extremeTerrain == true)
+        if(worldData.extremeTerrain == true)
         {
             //Fixed Pass
 
@@ -335,13 +337,23 @@ public class ChunkLoader : MonoBehaviour
 
             //Terrain Pass
 
-            float noise = Perlin.GetHeightMapPerlin(pos2, worldManager.scale);
+            float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale);
 
             int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
 
             if (yPos > terrainHeight)
             {
-                return 0;
+                if(yPos > worldData.seaLevel)
+                {
+                    return 0;
+                }
+
+                if(yPos == worldData.seaLevel)
+                {
+                    return 10;
+                }
+
+                return 9;
             }
 
             if (yPos < terrainHeight - 4)
@@ -479,7 +491,7 @@ public class ChunkLoader : MonoBehaviour
 
         return worldManager.blockData[GetVoxel(Vector3Int.FloorToInt(pos))].isSolid;
     }
-    public bool CheckForTransparentVoxel(Vector3Int pos)
+    public bool CheckForVisibleVoxel(Vector3Int pos)
     {
         ChunkVector vector = new ChunkVector(pos);
 
@@ -490,10 +502,10 @@ public class ChunkLoader : MonoBehaviour
 
         if (chunks[vector.x, vector.z] != null && chunks[vector.x, vector.z].isEditable == true)
         {
-            return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(pos)].isSolid;
+            return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(pos)].hasVisibleNeighbors;
         }
 
-        return worldManager.blockData[GetVoxel(pos)].isTransparent;
+        return worldManager.blockData[GetVoxel(pos)].hasVisibleNeighbors;
     }
     public int GetVoxelFromVector3Int(Vector3Int pos)
     {

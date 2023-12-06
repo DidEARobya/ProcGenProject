@@ -6,11 +6,8 @@ using UnityEngine.UIElements;
 public class WorldManager : MonoBehaviour
 {
     public static WorldManager instance;
-
     private WorldSettings worldSettings;
-
-    public bool extremeTerrain;
-    public bool enableThreading;
+    public WorldData worldData;
 
     public List<Item> items = new List<Item>();
 
@@ -20,8 +17,6 @@ public class WorldManager : MonoBehaviour
 
     public float gravity = -13f;
 
-    public float[,] noiseMap;
-
     [SerializeField]
     public BlockData[] blockData;
 
@@ -30,61 +25,53 @@ public class WorldManager : MonoBehaviour
     [SerializeField]
     public Material transparentBlockMaterial;
 
-    float maxHeight;
-    float minHeight;
-
-    public float scale = 0.01f;
-    public float lacunarity = 2.1f;
-    public float persistence = 0.5f;
-    public int octaves = 4;
-    public int seed = 32;
-    public int seedOffset = 0;
-
-    public int chunkWidth = 16;
-    public int chunkHeight = 64;
-
-    private int width;
-    private int height;
-
-    public int worldSizeInChunks = 20;
-    public int worldSizeInVoxels
-    {
-        get { return worldSizeInChunks * chunkWidth; }
-    }
-
-    public int loadDistance = 10;
-    public int viewDistanceInChunks = 5;
     public bool isSpawned;
 
     private void Awake()
     {
-        if(instance == null)
+        if (instance == null)
         {
             instance = this;
 
             worldSettings = GameObject.Find("WorldSettings")?.GetComponent<WorldSettings>();
 
-            if(worldSettings != null)
+            if (worldSettings != null)
             {
-                enableThreading = worldSettings.enableThreading;
-                seed = worldSettings.seed;
-                seedOffset = worldSettings.seedOffset;
-
-                worldSizeInChunks = worldSettings.worldSizeInChunks;
-                chunkWidth = worldSettings.chunkWidth;
-                chunkHeight = worldSettings.chunkHeight;
-
-                viewDistanceInChunks = worldSettings.viewDistanceInChunks;
+                worldData = new WorldData(
+                    worldSettings.enableThreading,
+                    worldSettings.enableThreading,
+                    worldSettings.scale,
+                    worldSettings.lacunarity,
+                    worldSettings.persistence,
+                    worldSettings.octaves,
+                    worldSettings.seed,
+                    worldSettings.seedOffset,
+                    worldSettings.chunkWidth,
+                    worldSettings.chunkHeight,
+                    worldSettings.worldSizeInChunks,
+                    worldSettings.loadDistance,
+                    worldSettings.viewDistanceInChunks);
+            }
+            else
+            {
+                worldData = new WorldData(
+                    true,
+                    true,
+                    0.1f,
+                    2,
+                    0.5f,
+                    4,
+                    0,
+                    0,
+                    16,
+                    128,
+                    30,
+                    10,
+                    5);
             }
 
-            spawnTemp = Vector3Int.FloorToInt(new Vector3((worldSizeInChunks / 2f) * chunkWidth, chunkHeight - 20f, (worldSizeInChunks / 2f) * chunkWidth));
+            spawnTemp = Vector3Int.FloorToInt(new Vector3((worldData.worldSizeInChunks / 2f) * worldData.chunkWidth, worldData.chunkHeight - 20f, (worldData.worldSizeInChunks / 2f) * worldData.chunkWidth));
             spawnPosition = spawnTemp;
-
-            maxHeight = float.MinValue;
-            minHeight = float.MaxValue;
-
-            width = worldSizeInVoxels;
-            height = worldSizeInChunks;
         }
     }
 
@@ -111,104 +98,56 @@ public class WorldManager : MonoBehaviour
 
     public float GenerateSeedValue()
     {
-        System.Random rand = new System.Random(seed);
+        System.Random rand = new System.Random(worldData.seed);
         float val = rand.Next(-10000, 10000);
 
         return val;
     }
 }
 
-/*public float Get2DPerlin(Vector2 position, float scale)
-   {
-       float x = position.x;
-       float y = position.y;
-
-       float val = 0;
-       float frequency = 1;
-       float amplitude = 1;
-       float maxValue = 0;
-
-       float seedVal = GenerateSeedValue(seed, seedOffset);
-
-       float xSample = ((x + 0.1f) / chunkWidth) * scale + seedVal;
-       float ySample = ((y + 0.1f) / chunkWidth) * scale + seedVal;
-
-       val = Mathf.PerlinNoise(xSample, ySample);
-
-       for (int i = 0; i < octaves; i++)
-       {
-           float perlinVal = Mathf.PerlinNoise(xSample * frequency, ySample * frequency) * amplitude;
-           val = val + perlinVal;
-
-           maxValue = maxValue + amplitude;
-           amplitude = amplitude * persistence;
-           frequency = frequency * lacunarity;
-       }
-
-       if (val > maxHeight)
-       {
-           maxHeight = val;
-       }
-       else// if(val < minHeight)
-       {
-           minHeight = val;
-       }
-
-       val = Mathf.InverseLerp(minHeight, maxHeight, val);
-
-       return val;
-   }*/
-
-/*private void NoiseGeneration(int width, int height, float scale, float lacunarity, float persistence, int octaves, int seed, int seedOffset)
+public class WorldData
 {
-    float[,] t = new float[width, height];
-    float maxHeight = float.MinValue;
-    float minHeight = float.MaxValue;
+    public bool extremeTerrain;
+    public bool enableThreading;
 
-    float seedVal = GenerateSeedValue(seed, seedOffset);
+    public float scale = 0.01f;
+    public float lacunarity = 2.1f;
+    public float persistence = 0.5f;
+    public int octaves = 4;
+    public int seed = 32;
+    public int seedOffset = 0;
 
-    for (int x = 0; x < width; x++)
+    public int chunkWidth = 16;
+    public int chunkHeight = 64;
+
+    public int worldSizeInChunks = 20;
+    public int worldSizeInVoxels
     {
-        for (int y = 0; y < height; y++)
-        {
-            float val = 0;
-            float frequency = 1;
-            float amplitude = 1;
-            float maxValue = 0;
-
-            for (int i = 0; i < octaves; i++)
-            {
-                float xSample = (x * scale) + seedVal;
-                float ySample = (y * scale) + seedVal;
-
-                float perlinValue = Mathf.PerlinNoise(xSample * frequency, ySample * frequency) * amplitude;
-                val = val + perlinValue;
-
-                maxValue = maxValue + amplitude;
-                amplitude = amplitude * persistence;
-                frequency = frequency * lacunarity;
-            }
-
-            if (val > maxHeight)
-            {
-                maxHeight = val;
-            }
-            else
-            {
-                minHeight = val;
-            }
-
-            t[x, y] = val;
-        }
+        get { return worldSizeInChunks * chunkWidth; }
     }
 
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            t[x, y] = Mathf.InverseLerp(minHeight, maxHeight, t[x, y]);
-        }
-    }
+    public int loadDistance = 10;
+    public int viewDistanceInChunks = 5;
 
-    noiseMap = t;
-}*/
+    public int seaLevel = 70;
+    public WorldData(bool _extremeTerrain, bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _seedOffset, int _chunkWidth, int _chunkHeight, int _worldSizeInChunks, int _loadDistance, int _viewDistance)
+    {
+        extremeTerrain = _extremeTerrain;
+        enableThreading = _enableThreading;
+
+        scale = _scale;
+        lacunarity = _lacunarity;
+        persistence = _persistence;
+        octaves = _octaves;
+
+        seed = _seed;
+        seedOffset = _seedOffset;
+
+        chunkWidth = _chunkWidth;
+        chunkHeight = _chunkHeight;
+        worldSizeInChunks = _worldSizeInChunks;
+
+        loadDistance = _loadDistance;
+        viewDistanceInChunks = _viewDistance;
+    }
+}

@@ -6,6 +6,7 @@ using UnityEngine;
 public class DebugScreen : MonoBehaviour
 {
     protected WorldManager worldManager;
+    protected WorldData worldData;
     protected ChunkLoader chunkLoader;
     protected PlayerController playerController;
 
@@ -22,11 +23,12 @@ public class DebugScreen : MonoBehaviour
     private void Start()
     {
         worldManager = WorldManager.instance;
+        worldData = worldManager.worldData;
         chunkLoader = worldManager.gameObject.GetComponent<ChunkLoader>();
         playerController = worldManager.player.GetComponent<PlayerController>();
 
-        halfWorldSizeInChunks = worldManager.worldSizeInChunks / 2;
-        halfWorldSizeInVoxels = worldManager.worldSizeInVoxels / 2;
+        halfWorldSizeInChunks = worldData.worldSizeInChunks / 2;
+        halfWorldSizeInVoxels = worldData.worldSizeInVoxels / 2;
 
         textObject = text.gameObject;
     }
@@ -53,7 +55,7 @@ public class DebugScreen : MonoBehaviour
 
         string debugText = "Debugging...";
         debugText += "\n\n";
-        debugText += "Threading: " + worldManager.enableThreading.ToString();
+        debugText += "Threading: " + worldData.enableThreading.ToString();
         debugText += "\n";
         debugText += frameRate.ToString() + " fps";
         debugText += "\n\n";
