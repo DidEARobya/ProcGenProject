@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: Grasslands
   m_EditorClassIdentifier: 
   biomeName: Grasslands
+  tempMin: -1
+  tempMax: -0.1
+  heightMin: 0.2
+  heightMax: 1
   offset: 1956
   scale: 0.038
   terrainHeight: 18

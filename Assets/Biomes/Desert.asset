@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: Desert
   m_EditorClassIdentifier: 
   biomeName: Desert
+  tempMin: 0.4
+  tempMax: 1
+  heightMin: -1
+  heightMax: -0.4
   offset: 6545
   scale: 0.032
   terrainHeight: 22

@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: Forest
   m_EditorClassIdentifier: 
   biomeName: Forest
+  tempMin: -0.1
+  tempMax: 0.4
+  heightMin: -0.4
+  heightMax: 0.2
   offset: 2654
   scale: 0.058
   terrainHeight: 48

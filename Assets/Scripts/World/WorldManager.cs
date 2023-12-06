@@ -37,15 +37,15 @@ public class WorldManager : MonoBehaviour
 
             if (worldSettings != null)
             {
+                Debug.Log("World Settings");
                 worldData = new WorldData(
-                    worldSettings.enableThreading,
+                    worldSettings.extremeTerrain,
                     worldSettings.enableThreading,
                     worldSettings.scale,
                     worldSettings.lacunarity,
                     worldSettings.persistence,
                     worldSettings.octaves,
                     worldSettings.seed,
-                    worldSettings.seedOffset,
                     worldSettings.chunkWidth,
                     worldSettings.chunkHeight,
                     worldSettings.worldSizeInChunks,
@@ -54,6 +54,7 @@ public class WorldManager : MonoBehaviour
             }
             else
             {
+                Debug.Log("No World Settings");
                 worldData = new WorldData(
                     true,
                     true,
@@ -61,7 +62,6 @@ public class WorldManager : MonoBehaviour
                     2,
                     0.5f,
                     4,
-                    0,
                     0,
                     16,
                     128,
@@ -110,27 +110,26 @@ public class WorldData
     public bool extremeTerrain;
     public bool enableThreading;
 
-    public float scale = 0.01f;
-    public float lacunarity = 2.1f;
-    public float persistence = 0.5f;
-    public int octaves = 4;
-    public int seed = 32;
-    public int seedOffset = 0;
+    public float scale;
+    public float lacunarity;
+    public float persistence;
+    public int octaves;
+    public int seed;
 
-    public int chunkWidth = 16;
-    public int chunkHeight = 64;
+    public int chunkWidth;
+    public int chunkHeight;
 
-    public int worldSizeInChunks = 20;
+    public int worldSizeInChunks;
     public int worldSizeInVoxels
     {
         get { return worldSizeInChunks * chunkWidth; }
     }
 
-    public int loadDistance = 10;
-    public int viewDistanceInChunks = 5;
+    public int loadDistance;
+    public int viewDistanceInChunks;
 
     public int seaLevel = 70;
-    public WorldData(bool _extremeTerrain, bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _seedOffset, int _chunkWidth, int _chunkHeight, int _worldSizeInChunks, int _loadDistance, int _viewDistance)
+    public WorldData(bool _extremeTerrain, bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _worldSizeInChunks, int _loadDistance, int _viewDistance)
     {
         extremeTerrain = _extremeTerrain;
         enableThreading = _enableThreading;
@@ -141,7 +140,6 @@ public class WorldData
         octaves = _octaves;
 
         seed = _seed;
-        seedOffset = _seedOffset;
 
         chunkWidth = _chunkWidth;
         chunkHeight = _chunkHeight;

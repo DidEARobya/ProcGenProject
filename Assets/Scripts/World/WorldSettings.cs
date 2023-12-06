@@ -13,12 +13,11 @@ public class WorldSettings : MonoBehaviour
     public bool extremeTerrain;
     public bool enableThreading;
 
-    public float scale = 0.01f;
-    public float lacunarity = 2.1f;
+    public float scale = 0.1f;
+    public float lacunarity = 2.0f;
     public float persistence = 0.5f;
     public int octaves = 4;
     public int seed = 32;
-    public int seedOffset = 0;
 
     public int chunkWidth = 16;
     public int chunkHeight = 64;
@@ -72,16 +71,14 @@ public class WorldSettings : MonoBehaviour
     {
         enableThreading = !enableThreading;
     }
-
+    public void ToggleExtremeTerrain()
+    {
+        extremeTerrain = !extremeTerrain;
+    }
     public void SetSeed()
     {
         seed = Mathf.FloorToInt(seedSlider.value);
         seedText.text = "Seed: " + seed.ToString();
-    }
-    public void SetOffset()
-    {
-        seedOffset = Mathf.FloorToInt(offsetSlider.value);
-        offsetText.text = "Offset: " + seedOffset.ToString();
     }
     public void SetWorldSize()
     {
