@@ -44,6 +44,8 @@ public class ChunkLoader : MonoBehaviour
 
     Thread chunkUpdateThread;
     public object updateThreadLock = new object();
+    Thread chunkUpdateThread2;
+    public object updateThreadLock2 = new object();
 
     private int readyIndex = 0;
     public bool isReady = false;
@@ -72,6 +74,9 @@ public class ChunkLoader : MonoBehaviour
             {
                 chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
                 chunkUpdateThread.Start();
+
+                chunkUpdateThread2 = new Thread(new ThreadStart(ThreadedUpdate));
+                chunkUpdateThread2.Start();
             }
 
             GenerateChunks();
@@ -152,8 +157,46 @@ public class ChunkLoader : MonoBehaviour
     {
         bool updated = false;
         int index = 0;
+        bool lockOneTaken = false;
 
-        lock(updateThreadLock)
+        lock (updateThreadLock)
+        {
+            lockOneTaken = true;
+
+            while (updated == false && index < toUpdate.Count - 1)
+            {
+                if (toUpdate[index] == null)
+                {
+                    toUpdate.RemoveAt(index);
+                    return;
+                }
+
+                if (toUpdate[index].isEditable == true)
+                {
+                    toUpdate[index].UpdateChunk();
+
+                    if (activeChunks.Contains(toUpdate[index].mapPosition) == false)
+                    {
+                        activeChunks.Add(toUpdate[index].mapPosition);
+                    }
+
+                    toUpdate.RemoveAt(index);
+
+                    updated = true;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+        }
+
+        if (lockOneTaken == true)
+        {
+            return;
+        }
+
+        lock (updateThreadLock2)
         {
             while (updated == false && index < toUpdate.Count - 1)
             {
@@ -199,6 +242,7 @@ public class ChunkLoader : MonoBehaviour
             }
         }
     }
+
     private void OnDisable()
     {
         if (worldData.enableThreading == true)
@@ -209,35 +253,76 @@ public class ChunkLoader : MonoBehaviour
     private void ApplyModifications()
     {
         applyingMods = true;
+        bool lockOneTaken = false;
 
-        while(modifications.Count > 0)
+        lock (updateThreadLock)
         {
-            Queue<VoxelMod> queue = modifications.Dequeue();
+            lockOneTaken = true;
 
-            while(queue.Count > 0)
+            while (modifications.Count > 0)
             {
-                VoxelMod mod = queue.Dequeue();
+                Queue<VoxelMod> queue = modifications.Dequeue();
 
-                ChunkVector chunkPos = GetChunkVectorFromVector3(mod.position);
-
-                if (chunkPos == null || chunks.GetLength(0) <= chunkPos.x || chunks.GetLength(1) <= chunkPos.z)
+                while (queue.Count > 0)
                 {
-                    Debug.Log("Bad Mod position");
-                    return;
-                }
-                
-                if (chunks[chunkPos.x, chunkPos.z] == null)
-                {
-                    chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
-                    toCreate.Add(chunkPos);
-                }
+                    VoxelMod mod = queue.Dequeue();
+
+                    ChunkVector chunkPos = GetChunkVectorFromVector3(mod.position);
+
+                    if (chunkPos == null || chunks.GetLength(0) <= chunkPos.x || chunks.GetLength(1) <= chunkPos.z)
+                    {
+                        return;
+                    }
+
+                    if (chunks[chunkPos.x, chunkPos.z] == null)
+                    {
+                        chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
+                        toCreate.Add(chunkPos);
+                    }
 
 
-                chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
+                    chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
+                }
             }
+
+            applyingMods = false;
         }
 
-        applyingMods = false;
+        if (lockOneTaken == true)
+        {
+            return;
+        }
+
+        lock (updateThreadLock2)
+        {
+            while (modifications.Count > 0)
+            {
+                Queue<VoxelMod> queue = modifications.Dequeue();
+
+                while (queue.Count > 0)
+                {
+                    VoxelMod mod = queue.Dequeue();
+
+                    ChunkVector chunkPos = GetChunkVectorFromVector3(mod.position);
+
+                    if (chunkPos == null || chunks.GetLength(0) <= chunkPos.x || chunks.GetLength(1) <= chunkPos.z)
+                    {
+                        return;
+                    }
+
+                    if (chunks[chunkPos.x, chunkPos.z] == null)
+                    {
+                        chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
+                        toCreate.Add(chunkPos);
+                    }
+
+
+                    chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
+                }
+            }
+
+            applyingMods = false;
+        }
     }
 
     protected ChunkVector GetChunkVectorFromVector3(Vector3 pos)
@@ -353,7 +438,6 @@ public class ChunkLoader : MonoBehaviour
         BiomeData biome = biomes[Perlin.GetBiomeIndex(pos2, biomes, noise)];
 
         //Terrain Pass
-
         if (yPos < terrainHeight - 4)
         {
             voxelValue = 1;
@@ -399,105 +483,6 @@ public class ChunkLoader : MonoBehaviour
         }*/
 
         return voxelValue;
-
-        /*else
-        {
-            Vector2Int currentPos = new Vector2Int(pos.x, pos.z);
-
-            //Generic
-            if (IsVoxelInWorld(pos) == false)
-            {
-                return 0;
-            }
-
-            //Biome selection
-            int solidGroundHeight = 24;
-
-            float biomesTotalHeight = 0;
-            int count = 0;
-
-            float strongestPerlinWeight = 0;
-            int strongestBiome = 0;
-
-            for (int i = 0; i < biomes.Length; i++)
-            {
-                float weight = Perlin.Get2DPerlin(currentPos, biomes[i].scale, biomes[i].offset);
-
-                if (weight > strongestPerlinWeight)
-                {
-                    strongestPerlinWeight = weight;
-                    strongestBiome = i;
-                }
-
-                float height = biomes[i].terrainHeight * Perlin.Get2DPerlin(currentPos, biomes[i].terrainScale, 0) * weight;
-
-                if (height > 0)
-                {
-                    biomesTotalHeight += height;
-                    count++;
-                }
-            }
-
-            BiomeData biome = biomes[strongestBiome];
-            float averageHeight = biomesTotalHeight / count;
-
-            //First Pass
-            int terrainHeight = Mathf.FloorToInt(averageHeight + solidGroundHeight);
-
-            if (worldManager.isSpawned == false && pos.x == worldManager.spawnPosition.x && pos.z == worldManager.spawnPosition.z)
-            {
-                worldManager.spawnPosition = new Vector3Int(pos.x, pos.y + 4, pos.z);
-            }
-
-
-            if (yPos < terrainHeight - 4)
-            {
-                voxelValue = 1;
-            }
-            else if (yPos < terrainHeight)
-            {
-                voxelValue = biome.subSurfaceBlock;
-            }
-            else if (yPos == terrainHeight)
-            {
-                voxelValue = biome.surfaceBlock;
-            }
-            else
-            {
-                return 0;
-            }
-
-            //Second Pass
-            if (voxelValue == 1)
-            {
-                foreach (Lode lode in biome.lodes)
-                {
-                    if (yPos > lode.minHeight && yPos < lode.maxHeight)
-                    {
-                        if (Perlin.Get3DPerlin(pos, lode.offset, lode.scale, lode.threshold) == true)
-                        {
-                            voxelValue = lode.blockID;
-                        }
-                    }
-                }
-            }
-
-            //Third pass
-
-            if (yPos == terrainHeight && biome.generateVegetation == true)
-            {
-                if (Perlin.Get2DPerlin(currentPos, biome.vegetationZoneScale, 0) > biome.vegetationZoneThreshold)
-                {
-                    if (Perlin.Get2DPerlin(currentPos, biome.vegetationPlacementScale, 0) > biome.vegetationPlacementThreshold)
-                    {
-                        modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize));
-                    }
-                }
-            }
-
-            return voxelValue;
-        }*/
-         
     }
 
     public bool CheckForVoxel(Vector3 pos)

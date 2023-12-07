@@ -118,7 +118,21 @@ public class Chunk
 
         isMapPopulated = true;
 
+
+        bool lockOneTaken = false;
+
         lock(chunkLoader.updateThreadLock)
+        {
+            chunkLoader.toUpdate.Add(this);
+            lockOneTaken = true;
+        }
+
+        if(lockOneTaken == true)
+        {
+            return; 
+        }
+
+        lock (chunkLoader.updateThreadLock2)
         {
             chunkLoader.toUpdate.Add(this);
         }
@@ -267,10 +281,23 @@ public class Chunk
             SpawnItem(oldData, itemPos);
         }
 
-        lock(chunkLoader.updateThreadLock)
+        bool lockOneTaken = false;
+
+        lock (chunkLoader.updateThreadLock)
         {
             chunkLoader.toUpdate.Insert(0, this);
             UpdateSurroundingVoxels(x, y, z);
+        }
+
+        if (lockOneTaken == true)
+        {
+            return true;
+        }
+
+        lock (chunkLoader.updateThreadLock2)
+        {
+            chunkLoader.toUpdate.Insert(0, this);
+            UpdateSurroundingVoxels(x, y, z); ;
         }
 
         return true;
