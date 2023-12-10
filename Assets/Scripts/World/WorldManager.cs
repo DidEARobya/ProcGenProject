@@ -57,7 +57,7 @@ public class WorldManager : MonoBehaviour
                     0.1f,
                     2,
                     0.5f,
-                    4,
+                    2,
                     24,
                     16,
                     128,

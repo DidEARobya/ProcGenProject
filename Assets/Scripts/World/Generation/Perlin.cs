@@ -6,16 +6,9 @@ using UnityEngine;
 
 public static class Perlin
 {
-    public static float GetHeightMapPerlin(Vector2Int position, float scale)
+    public static float GetHeightMapPerlin(Vector2Int position, float scale, float offset)
     {
         WorldData worldData = WorldManager.instance.worldData;
-
-        float[] offsets = new float[worldData.octaves];
-
-        for (int u = 0; u < worldData.octaves; u++)
-        {
-            offsets[u] = WorldManager.instance.GenerateSeedValue();
-        }
 
         int octaves = worldData.octaves;
         float persistence = worldData.persistence;
@@ -27,8 +20,8 @@ public static class Perlin
 
         for (int i = 0; i < octaves; i++)
         {
-            float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * scale * frequency + offsets[i];
-            float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * scale * frequency + offsets[i];
+            float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * scale * frequency + offset;
+            float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * scale * frequency + offset;
 
             float perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
             noise += perlinValue * amplitude;
@@ -40,10 +33,10 @@ public static class Perlin
         return noise;
     }
 
-    public static int GetBiomeIndex(Vector2Int position, BiomeData[] biomes, float heightNoise) 
+    public static int GetBiomeIndex(Vector2Int position, BiomeData[] biomes, float heightNoise, float offset) 
     {
         int biomeIndex = 0;
-        float tempNoise = GetTemperatureNoise(position);
+        float tempNoise = GetTemperatureNoise(position, offset);
 
         for(int i = 0; i < biomes.Length; i++)
         {
@@ -59,24 +52,22 @@ public static class Perlin
         return biomeIndex;
     }
 
-    public static float GetTemperatureNoise(Vector2Int position)
+    public static float GetTemperatureNoise(Vector2Int position, float offset)
     {
-        float seedVal = WorldManager.instance.GenerateSeedValue();
         WorldData worldData = WorldManager.instance.worldData;
 
-        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + seedVal;
-        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + seedVal;
+        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + offset;
+        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + offset;
 
         return Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
     }
 
-    public static float GetVegetationNoise(Vector2Int position)
+    public static float GetVegetationNoise(Vector2Int position, float offset)
     {
-        float seedVal = WorldManager.instance.GenerateSeedValue();
         WorldData worldData = WorldManager.instance.worldData;
 
-        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) + 5000 + seedVal;
-        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) + 5000 + seedVal;
+        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) + 5000 + offset;
+        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) + 5000 + offset;
 
         return Mathf.PerlinNoise(xSample, ySample);
     }

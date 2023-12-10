@@ -17,6 +17,7 @@ public class ChunkLoader : MonoBehaviour
 
     WorldManager worldManager;
     WorldData worldData;
+    float offset;
 
     protected float[,] noiseMap;
 
@@ -62,6 +63,8 @@ public class ChunkLoader : MonoBehaviour
             worldData = worldManager.worldData;
             player = worldManager.player.transform;
 
+            offset = WorldManager.instance.GenerateSeedValue();
+
             chunkCount = worldData.worldSizeInChunks;
             voxelCount = worldData.worldSizeInVoxels;
 
@@ -80,8 +83,8 @@ public class ChunkLoader : MonoBehaviour
                 chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
                 chunkUpdateThread.Start();
 
-                chunkLoadThread = new Thread(new ThreadStart(ThreadedLoad));
-                chunkLoadThread.Start();
+                //chunkLoadThread = new Thread(new ThreadStart(ThreadedLoad));
+                //chunkLoadThread.Start();
             }
 
             GenerateSpawnChunks();
@@ -97,6 +100,11 @@ public class ChunkLoader : MonoBehaviour
             CheckLoadDistance();
             CheckViewDistance();
             lastChunk = currentChunk;
+        }
+
+        if (toLoad.Count > 0)
+        {
+            LoadChunk();
         }
 
         if (toDraw.Count > 0)
@@ -328,7 +336,6 @@ public class ChunkLoader : MonoBehaviour
         for (int i = 0; i < lastActive.Count; i++)
         {
             chunks[lastActive[i].x, lastActive[i].z].isActive = false;
-
             activeChunks.Remove(lastActive[i]);
         }
     }
@@ -349,7 +356,7 @@ public class ChunkLoader : MonoBehaviour
 
         Vector2Int pos2 = new Vector2Int(xPos, zPos);
 
-        float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale);
+        float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale, offset);
 
         int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
 
@@ -368,7 +375,7 @@ public class ChunkLoader : MonoBehaviour
             return 9;
         }
 
-        BiomeData biome = biomes[Perlin.GetBiomeIndex(pos2, biomes, noise)];
+        BiomeData biome = biomes[Perlin.GetBiomeIndex(pos2, biomes, noise, offset)];
 
         //Terrain Pass
         if (yPos < terrainHeight - 4)
