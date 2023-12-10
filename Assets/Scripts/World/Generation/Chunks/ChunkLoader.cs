@@ -83,8 +83,8 @@ public class ChunkLoader : MonoBehaviour
                 chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
                 chunkUpdateThread.Start();
 
-                //chunkLoadThread = new Thread(new ThreadStart(ThreadedLoad));
-                //chunkLoadThread.Start();
+                chunkLoadThread = new Thread(new ThreadStart(ThreadedLoad));
+                chunkLoadThread.Start();
             }
 
             GenerateSpawnChunks();
@@ -100,11 +100,6 @@ public class ChunkLoader : MonoBehaviour
             CheckLoadDistance();
             CheckViewDistance();
             lastChunk = currentChunk;
-        }
-
-        if (toLoad.Count > 0)
-        {
-            LoadChunk();
         }
 
         if (toDraw.Count > 0)
@@ -124,6 +119,11 @@ public class ChunkLoader : MonoBehaviour
 
         if (worldData.enableThreading == false)
         {
+            if (toLoad.Count > 0)
+            {
+                LoadChunk();
+            }
+
             if (applyingMods == false)
             {
                 ApplyModifications();
