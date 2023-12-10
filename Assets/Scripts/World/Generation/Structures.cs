@@ -4,23 +4,23 @@ using UnityEngine;
 
 public static class Structures
 { 
-    public static Queue<VoxelMod> GenerateVegetation(int index, Vector3Int position, int minHeight, int maxHeight)
+    public static Queue<VoxelMod> GenerateVegetation(int index, Vector3Int position, int minHeight, int maxHeight, float offset)
     {
         switch(index)
         {
             case 0:
-                return MakeTree(position, minHeight, maxHeight);
+                return MakeTree(position, minHeight, maxHeight, offset);
             case 1:
-                return MakeCacti(position, minHeight, maxHeight);
+                return MakeCacti(position, minHeight, maxHeight, offset);
         }
 
         return new Queue<VoxelMod>();
     }
-    public static Queue<VoxelMod> MakeTree(Vector3Int position, int minHeight, int maxHeight)
+    public static Queue<VoxelMod> MakeTree(Vector3Int position, int minHeight, int maxHeight, float offset)
     {
         Queue<VoxelMod> queue = new Queue <VoxelMod>();
 
-        int height = (int)(maxHeight * Perlin.GetVegetationNoise(new Vector2Int(position.x, position.y)));
+        int height = (int)(maxHeight * Perlin.GetVegetationNoise(new Vector2Int(position.x, position.y), offset));
 
         if(height < minHeight)
         {
@@ -45,11 +45,11 @@ public static class Structures
 
         return queue;
     }
-    public static Queue<VoxelMod> MakeCacti(Vector3Int position, int minHeight, int maxHeight)
+    public static Queue<VoxelMod> MakeCacti(Vector3Int position, int minHeight, int maxHeight, float offset)
     {
         Queue<VoxelMod> queue = new Queue<VoxelMod>();
 
-        int height = (int)(maxHeight * Perlin.GetVegetationNoise(new Vector2Int(position.x, position.y)));
+        int height = (int)(maxHeight * Perlin.GetVegetationNoise(new Vector2Int(position.x, position.y), offset));
 
         if (height < minHeight)
         {
