@@ -26,6 +26,7 @@ public class ChunkLoader : MonoBehaviour
     protected int chunkWidth;
     protected int chunkHeight;
 
+    protected int loadDistance;
     protected int viewDistance;
 
     Chunk[,] chunks;
@@ -36,18 +37,19 @@ public class ChunkLoader : MonoBehaviour
 
     public Queue<Chunk> toDraw = new Queue<Chunk>();
 
-    List<ChunkVector> toCreate = new List<ChunkVector>();
     public List<Chunk> toUpdate = new List<Chunk>();
+    public List<Chunk> toLoad = new List<Chunk>();
 
     Queue<Queue<VoxelMod>> modifications = new Queue<Queue<VoxelMod>>();
     private bool applyingMods = false;
 
     Thread chunkUpdateThread;
     public object updateThreadLock = new object();
-    Thread chunkUpdateThread2;
-    public object updateThreadLock2 = new object();
 
-    private int readyIndex = 0;
+    Thread chunkLoadThread;
+    public object loadThreadLock = new object();
+
+    private int loadIndex = 0;
     public bool isReady = false;
 
     private void Start()
@@ -66,7 +68,10 @@ public class ChunkLoader : MonoBehaviour
             chunkWidth = worldData.chunkWidth;
             chunkHeight = worldData.chunkHeight;
 
+            loadDistance = worldData.loadDistance;
             viewDistance = worldData.viewDistanceInChunks;
+
+            loadIndex = (viewDistance * 2) * (viewDistance * 2);
 
             chunks = new Chunk[chunkCount, chunkCount];
 
@@ -75,11 +80,11 @@ public class ChunkLoader : MonoBehaviour
                 chunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
                 chunkUpdateThread.Start();
 
-                chunkUpdateThread2 = new Thread(new ThreadStart(ThreadedUpdate));
-                chunkUpdateThread2.Start();
+                chunkLoadThread = new Thread(new ThreadStart(ThreadedLoad));
+                chunkLoadThread.Start();
             }
 
-            GenerateChunks();
+            GenerateSpawnChunks();
         }
     }
 
@@ -89,26 +94,24 @@ public class ChunkLoader : MonoBehaviour
 
         if (currentChunk.Equals(lastChunk) == false)
         {
+            CheckLoadDistance();
             CheckViewDistance();
             lastChunk = currentChunk;
         }
 
-        if(toCreate.Count > 0)
-        {
-            CreateChunk();
-
-            if (isReady == false && toCreate.Count == 0)
-            {
-                isReady = true;
-            }
-        }
-
         if (toDraw.Count > 0)
         {
-            if (toDraw.Peek().isEditable == true)
+            if(loadIndex > 0)
             {
-                toDraw.Dequeue().CreateMesh();
+                loadIndex -= 1;
+
+                if(loadIndex == 0)
+                {
+                    isReady = true;
+                }
             }
+
+            toDraw.Dequeue().CreateMesh();
         }
 
         if (worldData.enableThreading == false)
@@ -125,7 +128,7 @@ public class ChunkLoader : MonoBehaviour
         }
     }
 
-    protected void GenerateChunks()
+    protected void GenerateSpawnChunks()
     {
         int chunksCount = Mathf.FloorToInt(chunkCount / 2);
 
@@ -134,9 +137,7 @@ public class ChunkLoader : MonoBehaviour
             for (int z = chunksCount - viewDistance; z < chunksCount + viewDistance; z++)
             {
                 ChunkVector vector = new ChunkVector(x, z);
-
                 chunks[x, z] = new Chunk(vector, chunkWidth, chunkHeight);
-                toCreate.Add(vector);
             }
         }
 
@@ -146,84 +147,23 @@ public class ChunkLoader : MonoBehaviour
         CheckViewDistance();
     }
 
-    private void CreateChunk()
-    {
-        ChunkVector pos = toCreate[0];
-        toCreate.RemoveAt(0);
-
-        chunks[pos.x, pos.z].Init();
-    }
     private void UpdateChunks()
     {
-        bool updated = false;
-        int index = 0;
-        bool lockOneTaken = false;
-
         lock (updateThreadLock)
         {
-            lockOneTaken = true;
-
-            while (updated == false && index < toUpdate.Count - 1)
+            if (toUpdate[0] == null)
             {
-                if (toUpdate[index] == null)
-                {
-                    toUpdate.RemoveAt(index);
-                    return;
-                }
-
-                if (toUpdate[index].isEditable == true)
-                {
-                    toUpdate[index].UpdateChunk();
-
-                    if (activeChunks.Contains(toUpdate[index].mapPosition) == false)
-                    {
-                        activeChunks.Add(toUpdate[index].mapPosition);
-                    }
-
-                    toUpdate.RemoveAt(index);
-
-                    updated = true;
-                }
-                else
-                {
-                    index++;
-                }
+                return;
             }
-        }
 
-        if (lockOneTaken == true)
-        {
-            return;
-        }
+            toUpdate[0].UpdateChunk();
 
-        lock (updateThreadLock2)
-        {
-            while (updated == false && index < toUpdate.Count - 1)
+            if (activeChunks.Contains(toUpdate[0].mapPosition) == false)
             {
-                if (toUpdate[index] == null)
-                {
-                    toUpdate.RemoveAt(index);
-                    return;
-                }
-
-                if (toUpdate[index].isEditable == true)
-                {
-                    toUpdate[index].UpdateChunk();
-
-                    if (activeChunks.Contains(toUpdate[index].mapPosition) == false)
-                    {
-                        activeChunks.Add(toUpdate[index].mapPosition);
-                    }
-
-                    toUpdate.RemoveAt(index);
-
-                    updated = true;
-                }
-                else
-                {
-                    index++;
-                }
+                activeChunks.Add(toUpdate[0].mapPosition);
             }
+
+            toUpdate.RemoveAt(0);
         }
     }
 
@@ -242,7 +182,16 @@ public class ChunkLoader : MonoBehaviour
             }
         }
     }
-
+    void ThreadedLoad()
+    {
+        while (true)
+        {
+            if(toLoad.Count > 0)
+            {
+                LoadChunk();
+            }
+        }
+    }
     private void OnDisable()
     {
         if (worldData.enableThreading == true)
@@ -250,15 +199,20 @@ public class ChunkLoader : MonoBehaviour
             chunkUpdateThread.Abort();
         }
     }
+    private void LoadChunk()
+    {
+        lock(loadThreadLock)
+        {
+            toLoad[0].PopulateVoxelMap();
+            toLoad.RemoveAt(0);
+        }
+    }
     private void ApplyModifications()
     {
         applyingMods = true;
-        bool lockOneTaken = false;
 
         lock (updateThreadLock)
         {
-            lockOneTaken = true;
-
             while (modifications.Count > 0)
             {
                 Queue<VoxelMod> queue = modifications.Dequeue();
@@ -277,43 +231,6 @@ public class ChunkLoader : MonoBehaviour
                     if (chunks[chunkPos.x, chunkPos.z] == null)
                     {
                         chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
-                        toCreate.Add(chunkPos);
-                    }
-
-
-                    chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
-                }
-            }
-
-            applyingMods = false;
-        }
-
-        if (lockOneTaken == true)
-        {
-            return;
-        }
-
-        lock (updateThreadLock2)
-        {
-            while (modifications.Count > 0)
-            {
-                Queue<VoxelMod> queue = modifications.Dequeue();
-
-                while (queue.Count > 0)
-                {
-                    VoxelMod mod = queue.Dequeue();
-
-                    ChunkVector chunkPos = GetChunkVectorFromVector3(mod.position);
-
-                    if (chunkPos == null || chunks.GetLength(0) <= chunkPos.x || chunks.GetLength(1) <= chunkPos.z)
-                    {
-                        return;
-                    }
-
-                    if (chunks[chunkPos.x, chunkPos.z] == null)
-                    {
-                        chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
-                        toCreate.Add(chunkPos);
                     }
 
 
@@ -349,6 +266,27 @@ public class ChunkLoader : MonoBehaviour
 
         return chunks[x, z];
     }
+    protected void CheckLoadDistance()
+    {
+        ChunkVector chunkVector = GetChunkVectorFromVector3(player.position);
+        lastChunk = currentChunk;
+
+        for (int x = chunkVector.x - loadDistance; x < chunkVector.x + loadDistance; x++)
+        {
+            for (int z = chunkVector.z - loadDistance; z < chunkVector.z + loadDistance; z++)
+            {
+                ChunkVector temp = new ChunkVector(x, z);
+
+                if (IsChunkInWorld(temp))
+                {
+                    if (chunks[x, z] == null)
+                    {
+                        chunks[x, z] = new Chunk(temp, chunkWidth, chunkHeight);
+                    }
+                }
+            }
+        }
+    }
     protected void CheckViewDistance()
     {
         ChunkVector chunkVector = GetChunkVectorFromVector3(player.position);
@@ -365,20 +303,15 @@ public class ChunkLoader : MonoBehaviour
 
                 if (IsChunkInWorld(temp))
                 {
-                    if (chunks[x, z] == null)
-                    {
-                        chunks[x,z] = new Chunk(temp, chunkWidth, chunkHeight);
-                        toCreate.Add(temp);
-                    }
-                    else
+                    if (chunks[x, z] != null)
                     {
                         if (chunks[x, z].isActive == false)
                         {
                             chunks[x, z].isActive = true; 
                         }
-                    }
 
-                    activeChunks.Add(temp);
+                        activeChunks.Add(temp);
+                    }
                 }
 
                 for(int i = 0; i < lastActive.Count; i++)

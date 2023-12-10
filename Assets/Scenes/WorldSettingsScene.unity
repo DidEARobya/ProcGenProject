@@ -156,17 +156,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &373947678 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7428033670613397269, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
-  m_PrefabInstance: {fileID: 7256242827716831977}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &446923936
 GameObject:
   m_ObjectHideFlags: 0
@@ -196,7 +185,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4a2e6ba3df5aeb4d8445043e62fbbe4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  extremeTerrain: 0
   enableThreading: 0
   scale: 0.1
   lacunarity: 2
@@ -210,8 +198,6 @@ MonoBehaviour:
   viewDistanceInChunks: 5
   seedSlider: {fileID: 1049115747}
   seedText: {fileID: 1094865272}
-  offsetSlider: {fileID: 862297883}
-  offsetText: {fileID: 373947678}
   worldSizeSlider: {fileID: 132696526}
   worldSizeText: {fileID: 1569915753}
   chunkWidthSlider: {fileID: 878189183}
@@ -220,6 +206,8 @@ MonoBehaviour:
   chunkHeightText: {fileID: 247635158}
   viewDistanceSlider: {fileID: 2127431339}
   viewDistanceText: {fileID: 357063488}
+  loadDistanceSlider: {fileID: 1341026775}
+  loadDistanceText: {fileID: 1598140932}
 --- !u!4 &446923938
 Transform:
   m_ObjectHideFlags: 0
@@ -244,17 +232,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &862297883 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
-  m_PrefabInstance: {fileID: 7256242827716831977}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &878189183 stripped
@@ -452,9 +429,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &1341026775 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
+  m_PrefabInstance: {fileID: 7256242827716831977}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1569915753 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6995724061420452158, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
+  m_PrefabInstance: {fileID: 7256242827716831977}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1598140932 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7428033670613397269, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
   m_PrefabInstance: {fileID: 7256242827716831977}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -771,16 +770,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
       propertyPath: m_MaxValue
-      value: 500
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
       propertyPath: m_MinValue
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 446923937}
+    - target: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetLoadDistance
+      objectReference: {fileID: 0}
+    - target: {fileID: 5484932565100757653, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: WorldSettings, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 6186600117163414591, guid: a73ed720ba2bfb0479cd922fd7653d28, type: 3}
       propertyPath: m_Value
       value: 30

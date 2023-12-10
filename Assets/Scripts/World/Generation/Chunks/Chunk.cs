@@ -46,14 +46,14 @@ public class Chunk
 
         width = _width;
         height = _height;
-    }
 
-    public void Init()
-    {
         chunkObject = new GameObject();
         chunkObject.transform.SetParent(worldManager.transform);
         chunkObject.transform.position = new Vector3(mapPosition.x * width, 0f, mapPosition.z * width);
         chunkObject.name = "Chunk: " + chunkObject.transform.position.x + "_" + chunkObject.transform.position.z;
+
+        chunkObject.SetActive(false);
+        _isActive = false;
 
         position = Vector3Int.FloorToInt(chunkObject.transform.position);
 
@@ -66,9 +66,9 @@ public class Chunk
 
         meshRenderer.materials = materials;
 
-        voxelMap = new int[width, height, width];
+        voxelMap = new int[width, height, height];
 
-        PopulateVoxelMap();
+        chunkLoader.toLoad.Add(this);
     }
 
     public void UpdateChunk()
@@ -103,7 +103,7 @@ public class Chunk
         }
     }
 
-    protected void PopulateVoxelMap()
+    public void PopulateVoxelMap()
     {
         for (int y = 0; y < height; y++)
         {
@@ -118,24 +118,7 @@ public class Chunk
 
         isMapPopulated = true;
 
-
-        bool lockOneTaken = false;
-
-        lock(chunkLoader.updateThreadLock)
-        {
-            chunkLoader.toUpdate.Add(this);
-            lockOneTaken = true;
-        }
-
-        if(lockOneTaken == true)
-        {
-            return; 
-        }
-
-        lock (chunkLoader.updateThreadLock2)
-        {
-            chunkLoader.toUpdate.Add(this);
-        }
+        chunkLoader.toUpdate.Add(this);
     }
 
     protected bool CheckIfVoxelHasVisibleNeighbors(Vector3Int pos)
@@ -281,23 +264,10 @@ public class Chunk
             SpawnItem(oldData, itemPos);
         }
 
-        bool lockOneTaken = false;
-
         lock (chunkLoader.updateThreadLock)
         {
             chunkLoader.toUpdate.Insert(0, this);
             UpdateSurroundingVoxels(x, y, z);
-        }
-
-        if (lockOneTaken == true)
-        {
-            return true;
-        }
-
-        lock (chunkLoader.updateThreadLock2)
-        {
-            chunkLoader.toUpdate.Insert(0, this);
-            UpdateSurroundingVoxels(x, y, z); ;
         }
 
         return true;
