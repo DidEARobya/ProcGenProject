@@ -38,7 +38,6 @@ public class WorldManager : MonoBehaviour
             if (worldSettings != null)
             {
                 worldData = new WorldData(
-                    worldSettings.extremeTerrain,
                     worldSettings.enableThreading,
                     worldSettings.scale,
                     worldSettings.lacunarity,
@@ -54,7 +53,6 @@ public class WorldManager : MonoBehaviour
             else
             {
                 worldData = new WorldData(
-                    true,
                     true,
                     0.1f,
                     2,
@@ -105,7 +103,6 @@ public class WorldManager : MonoBehaviour
 
 public class WorldData
 {
-    public bool extremeTerrain;
     public bool enableThreading;
 
     public float scale;
@@ -127,9 +124,8 @@ public class WorldData
     public int viewDistanceInChunks;
 
     public int seaLevel = 70;
-    public WorldData(bool _extremeTerrain, bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _worldSizeInChunks, int _loadDistance, int _viewDistance)
+    public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _worldSizeInChunks, int _loadDistance, int _viewDistance)
     {
-        extremeTerrain = _extremeTerrain;
         enableThreading = _enableThreading;
 
         scale = _scale;

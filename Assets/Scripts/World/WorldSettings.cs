@@ -10,7 +10,6 @@ public class WorldSettings : MonoBehaviour
 {
     public static WorldSettings instance;
 
-    public bool extremeTerrain;
     public bool enableThreading;
 
     public float scale = 0.1f;
@@ -24,18 +23,13 @@ public class WorldSettings : MonoBehaviour
 
     public int worldSizeInChunks = 20;
 
-    public int loadDistance = 10;
-    public int viewDistanceInChunks = 5;
+    public int loadDistance = 5;
+    public int viewDistanceInChunks = 1;
 
     [SerializeField]
     public Slider seedSlider;
     [SerializeField]
     public TextMeshProUGUI seedText;
-
-    [SerializeField]
-    public Slider offsetSlider;
-    [SerializeField]
-    public TextMeshProUGUI offsetText;
 
     [SerializeField]
     public Slider worldSizeSlider;
@@ -57,6 +51,11 @@ public class WorldSettings : MonoBehaviour
     [SerializeField]
     public TextMeshProUGUI viewDistanceText;
 
+    [SerializeField]
+    public Slider loadDistanceSlider;
+    [SerializeField]
+    public TextMeshProUGUI loadDistanceText;
+
     private void Awake()
     {
         if(instance == null)
@@ -70,10 +69,6 @@ public class WorldSettings : MonoBehaviour
     public void ToggleThreading()
     {
         enableThreading = !enableThreading;
-    }
-    public void ToggleExtremeTerrain()
-    {
-        extremeTerrain = !extremeTerrain;
     }
     public void SetSeed()
     {
@@ -99,6 +94,11 @@ public class WorldSettings : MonoBehaviour
     {
         viewDistanceInChunks = Mathf.FloorToInt(viewDistanceSlider.value);
         viewDistanceText.text = "View Distance: " + viewDistanceInChunks.ToString();
+    }
+    public void SetLoadDistance()
+    {
+        loadDistance = Mathf.FloorToInt(loadDistanceSlider.value);
+        loadDistanceText.text = "Load Distance: " + loadDistance.ToString();
     }
     public void GenerateWorld()
     {
