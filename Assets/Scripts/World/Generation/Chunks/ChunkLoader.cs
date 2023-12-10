@@ -194,7 +194,7 @@ public class ChunkLoader : MonoBehaviour
     {
         while (true)
         {
-            if(toLoad.Count > 0)
+            if (toLoad.Count > 0)
             {
                 LoadChunk();
             }
@@ -211,7 +211,11 @@ public class ChunkLoader : MonoBehaviour
     {
         lock(loadThreadLock)
         {
-            toLoad[0].PopulateVoxelMap();
+            if (toLoad[0] != null)
+            {
+                toLoad[0].PopulateVoxelMap();
+            }
+
             toLoad.RemoveAt(0);
         }
     }

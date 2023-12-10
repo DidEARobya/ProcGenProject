@@ -111,22 +111,22 @@ public class WorldSettings : MonoBehaviour
     public void SetScale()
     {
         scale = (float)System.Math.Round(perlinScaleSlider.value, 2);
-        perlinScaleText.text = "Perlin Scale: " + scale.ToString();
+        perlinScaleText.text = "Scale: " + scale.ToString();
     }
     public void SetLacunarity()
     {
         lacunarity = (float)System.Math.Round(perlinLacunaritySlider.value, 2);
-        perlinLacunarityText.text = "Perlin Lacunarity: " + lacunarity.ToString();
+        perlinLacunarityText.text = "Lacunarity: " + lacunarity.ToString();
     }
     public void SetPersistence()
     {
         persistence = (float)System.Math.Round(perlinPersistenceSlider.value, 2);
-        perlinPersistenceText.text = "Perlin Persistence: " + persistence.ToString();
+        perlinPersistenceText.text = "Persistence: " + persistence.ToString();
     }
     public void SetOctaves()
     {
         octaves = Mathf.FloorToInt(perlinOctavesSlider.value);
-        perlinOctavesText.text = "Perlin Octaves: " + octaves.ToString();
+        perlinOctavesText.text = "Octaves: " + octaves.ToString();
     }
     public void GenerateWorld()
     {
