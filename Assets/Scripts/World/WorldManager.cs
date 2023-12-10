@@ -46,24 +46,8 @@ public class WorldManager : MonoBehaviour
                     worldSettings.seed,
                     worldSettings.chunkWidth,
                     worldSettings.chunkHeight,
-                    worldSettings.worldSizeInChunks,
                     worldSettings.loadDistance,
                     worldSettings.viewDistanceInChunks);
-            }
-            else
-            {
-                worldData = new WorldData(
-                    true,
-                    0.1f,
-                    2,
-                    0.5f,
-                    2,
-                    24,
-                    16,
-                    128,
-                    30,
-                    10,
-                    5);
             }
 
             spawnTemp = Vector3Int.FloorToInt(new Vector3((worldData.worldSizeInChunks / 2f) * worldData.chunkWidth, worldData.chunkHeight - 20f, (worldData.worldSizeInChunks / 2f) * worldData.chunkWidth));
@@ -114,7 +98,7 @@ public class WorldData
     public int chunkWidth;
     public int chunkHeight;
 
-    public int worldSizeInChunks;
+    public int worldSizeInChunks = 1000;
     public int worldSizeInVoxels
     {
         get { return worldSizeInChunks * chunkWidth; }
@@ -124,7 +108,7 @@ public class WorldData
     public int viewDistanceInChunks;
 
     public int seaLevel = 70;
-    public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _worldSizeInChunks, int _loadDistance, int _viewDistance)
+    public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _loadDistance, int _viewDistance)
     {
         enableThreading = _enableThreading;
 
@@ -137,7 +121,6 @@ public class WorldData
 
         chunkWidth = _chunkWidth;
         chunkHeight = _chunkHeight;
-        worldSizeInChunks = _worldSizeInChunks;
 
         loadDistance = _loadDistance;
         viewDistanceInChunks = _viewDistance;

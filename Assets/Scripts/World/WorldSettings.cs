@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+
 public class WorldSettings : MonoBehaviour
 {
     public static WorldSettings instance;
@@ -21,8 +22,6 @@ public class WorldSettings : MonoBehaviour
     public int chunkWidth = 16;
     public int chunkHeight = 64;
 
-    public int worldSizeInChunks = 20;
-
     public int loadDistance = 5;
     public int viewDistanceInChunks = 1;
 
@@ -30,11 +29,6 @@ public class WorldSettings : MonoBehaviour
     public Slider seedSlider;
     [SerializeField]
     public TextMeshProUGUI seedText;
-
-    [SerializeField]
-    public Slider worldSizeSlider;
-    [SerializeField]
-    public TextMeshProUGUI worldSizeText;
 
     [SerializeField]
     public Slider chunkWidthSlider;
@@ -56,6 +50,25 @@ public class WorldSettings : MonoBehaviour
     [SerializeField]
     public TextMeshProUGUI loadDistanceText;
 
+    [SerializeField]
+    public Slider perlinScaleSlider;
+    [SerializeField]
+    public TextMeshProUGUI perlinScaleText;
+
+    [SerializeField]
+    public Slider perlinLacunaritySlider;
+    [SerializeField]
+    public TextMeshProUGUI perlinLacunarityText;
+
+    [SerializeField]
+    public Slider perlinPersistenceSlider;
+    [SerializeField]
+    public TextMeshProUGUI perlinPersistenceText;
+
+    [SerializeField]
+    public Slider perlinOctavesSlider;
+    [SerializeField]
+    public TextMeshProUGUI perlinOctavesText;
     private void Awake()
     {
         if(instance == null)
@@ -74,11 +87,6 @@ public class WorldSettings : MonoBehaviour
     {
         seed = Mathf.FloorToInt(seedSlider.value);
         seedText.text = "Seed: " + seed.ToString();
-    }
-    public void SetWorldSize()
-    {
-        worldSizeInChunks = Mathf.FloorToInt(worldSizeSlider.value);
-        worldSizeText.text = "World Size: " + worldSizeInChunks.ToString();
     }
     public void SetChunkWidth()
     {
@@ -99,6 +107,26 @@ public class WorldSettings : MonoBehaviour
     {
         loadDistance = Mathf.FloorToInt(loadDistanceSlider.value);
         loadDistanceText.text = "Load Distance: " + loadDistance.ToString();
+    }
+    public void SetScale()
+    {
+        scale = (float)System.Math.Round(perlinScaleSlider.value, 2);
+        perlinScaleText.text = "Perlin Scale: " + scale.ToString();
+    }
+    public void SetLacunarity()
+    {
+        lacunarity = (float)System.Math.Round(perlinLacunaritySlider.value, 2);
+        perlinLacunarityText.text = "Perlin Lacunarity: " + lacunarity.ToString();
+    }
+    public void SetPersistence()
+    {
+        persistence = (float)System.Math.Round(perlinPersistenceSlider.value, 2);
+        perlinPersistenceText.text = "Perlin Persistence: " + persistence.ToString();
+    }
+    public void SetOctaves()
+    {
+        octaves = Mathf.FloorToInt(perlinOctavesSlider.value);
+        perlinOctavesText.text = "Perlin Octaves: " + octaves.ToString();
     }
     public void GenerateWorld()
     {
