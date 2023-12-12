@@ -371,11 +371,6 @@ public class ChunkLoader : MonoBehaviour
                 return 0;
             }
 
-            if (yPos == worldData.seaLevel)
-            {
-                return 10;
-            }
-
             return 9;
         }
 

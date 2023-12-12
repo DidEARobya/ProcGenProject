@@ -116,12 +116,12 @@ public class WorldSettings : MonoBehaviour
     public void SetLacunarity()
     {
         lacunarity = (float)System.Math.Round(perlinLacunaritySlider.value, 2);
-        perlinLacunarityText.text = "Lacunarity: " + lacunarity.ToString();
+        perlinLacunarityText.text = "Frequency: " + lacunarity.ToString();
     }
     public void SetPersistence()
     {
         persistence = (float)System.Math.Round(perlinPersistenceSlider.value, 2);
-        perlinPersistenceText.text = "Persistence: " + persistence.ToString();
+        perlinPersistenceText.text = "Amplitude: " + persistence.ToString();
     }
     public void SetOctaves()
     {

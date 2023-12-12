@@ -292,7 +292,7 @@ public class Chunk
 
             if(isVoxelInChunk(temp.x, temp.y, temp.z) == false)
             {
-                chunkLoader.toUpdate.Insert(0, (chunkLoader.GetChunkFromVector3(temp + position)));
+                chunkLoader.toUpdate.Add(chunkLoader.GetChunkFromVector3(temp + position));
             }
         }
     }
