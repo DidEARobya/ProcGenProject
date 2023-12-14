@@ -38,7 +38,6 @@ public class ChunkLoader : MonoBehaviour
     ChunkVector lastChunk;
 
     public Queue<Chunk> toDraw = new Queue<Chunk>();
-
     public List<Chunk> toUpdate = new List<Chunk>();
     public List<Chunk> toLoad = new List<Chunk>();
 
@@ -203,6 +202,7 @@ public class ChunkLoader : MonoBehaviour
         if (worldData.enableThreading == true)
         {
             chunkUpdateThread.Abort();
+            chunkLoadThread.Abort();
         }
     }
     private void LoadChunk()

@@ -34,16 +34,52 @@ public static class Perlin
         return noise;
     }
 
-    public static int GetBiomeIndex(Vector2Int position, BiomeData[] biomes, float heightNoise, float offset) 
+
+    public static float GetTemperatureNoise(Vector2Int position, float offset)
+    {
+        WorldData worldData = WorldManager.instance.worldData;
+
+        int octaves = worldData.octaves;
+        float persistence = worldData.persistence;
+        float lacunarity = worldData.lacunarity;
+
+        float noise = 0;
+        float amplitude = 1;
+        float frequency = 1;
+
+        for (int i = 0; i < octaves; i++)
+        {
+            float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale * frequency + 10000 + offset;
+            float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale * frequency + 10000 + offset;
+
+            float perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
+            noise += perlinValue * amplitude;
+
+            amplitude *= persistence;
+            frequency *= lacunarity;
+        }
+
+        return noise;
+
+        /*WorldData worldData = WorldManager.instance.worldData;
+
+        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + offset;
+        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + offset;
+
+        return Mathf.PerlinNoise(xSample, ySample) * 2 - 1;*/
+
+    }
+
+    public static int GetBiomeIndex(Vector2Int position, BiomeData[] biomes, float heightNoise, float offset)
     {
         int biomeIndex = 0;
         float tempNoise = GetTemperatureNoise(position, offset);
 
-        for(int i = 0; i < biomes.Length; i++)
+        for (int i = 0; i < biomes.Length; i++)
         {
-            if(heightNoise > biomes[i].heightMin && heightNoise < biomes[i].heightMax)
+            if (heightNoise > biomes[i].heightMin && heightNoise < biomes[i].heightMax)
             {
-                if(tempNoise > biomes[i].tempMin && tempNoise < biomes[i].tempMax)
+                if (tempNoise > biomes[i].tempMin && tempNoise < biomes[i].tempMax)
                 {
                     biomeIndex = i;
                 }
@@ -51,16 +87,6 @@ public static class Perlin
         }
 
         return biomeIndex;
-    }
-
-    public static float GetTemperatureNoise(Vector2Int position, float offset)
-    {
-        WorldData worldData = WorldManager.instance.worldData;
-
-        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + offset;
-        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) * worldData.scale + 10000 + offset;
-
-        return Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
     }
 
     public static float GetVegetationZoneNoise(Vector2Int position, float offset, float scale)
