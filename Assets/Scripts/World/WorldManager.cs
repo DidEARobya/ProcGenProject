@@ -98,7 +98,7 @@ public class WorldData
     public int chunkWidth;
     public int chunkHeight;
 
-    public int worldSizeInChunks = 1000;
+    public int worldSizeInChunks = 50;
     public int worldSizeInVoxels
     {
         get { return worldSizeInChunks * chunkWidth; }

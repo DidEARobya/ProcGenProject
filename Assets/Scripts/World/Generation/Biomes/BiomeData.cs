@@ -27,8 +27,12 @@ public class BiomeData :ScriptableObject
 
     [Range(0.1f, 1f)]
     public float vegetationZoneThreshold;
+    [Range(0.01f, 10f)]
+    public float vegetationZoneScale;
     [Range(0.1f, 1f)]
-    public float vegetationPlacementThreshold;
+    public float vegetationDensityThreshold;
+    [Range(0.01f, 10f)]
+    public float vegetationDensityScale;
 
     public bool generateVegetation = true;
 

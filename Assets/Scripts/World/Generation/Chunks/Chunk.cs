@@ -73,13 +73,13 @@ public class Chunk
 
     public void UpdateChunk()
     {
-        while(modifications.Count > 0)
+        while (modifications.Count > 0)
         {
             VoxelMod mod = modifications.Dequeue();
             Vector3 pos = (mod.position -= position);
 
-            voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = mod.id; 
-        }  
+            voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = mod.id;
+        }
 
         ClearMeshData();
 
@@ -292,7 +292,7 @@ public class Chunk
 
             if(isVoxelInChunk(temp.x, temp.y, temp.z) == false)
             {
-                chunkLoader.toUpdate.Insert(0, (chunkLoader.GetChunkFromVector3(temp + position)));
+                chunkLoader.toUpdate.Add(chunkLoader.GetChunkFromVector3(temp + position));
             }
         }
     }

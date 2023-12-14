@@ -9,6 +9,7 @@ using UnityEngine.XR;
 public class ChunkLoader : MonoBehaviour
 {
     public static ChunkLoader instance;
+    public PoissonDiscSampler sampler;
 
     Transform player;
 
@@ -179,14 +180,11 @@ public class ChunkLoader : MonoBehaviour
     {
         while(true)
         {
+            ApplyModifications();
+
             if (toUpdate.Count > 0)
             {
                 UpdateChunks();
-            }
-
-            if (applyingMods == false)
-            {
-                ApplyModifications();
             }
         }
     }
@@ -221,8 +219,6 @@ public class ChunkLoader : MonoBehaviour
     }
     private void ApplyModifications()
     {
-        applyingMods = true;
-
         lock (updateThreadLock)
         {
             while (modifications.Count > 0)
@@ -242,15 +238,13 @@ public class ChunkLoader : MonoBehaviour
 
                     if (chunks[chunkPos.x, chunkPos.z] == null)
                     {
-                        chunks[chunkPos.x, chunkPos.z] = new Chunk(chunkPos, chunkWidth, chunkHeight);
+                        return;
                     }
 
 
                     chunks[chunkPos.x, chunkPos.z].modifications.Enqueue(mod);
                 }
             }
-
-            applyingMods = false;
         }
     }
 
@@ -371,11 +365,6 @@ public class ChunkLoader : MonoBehaviour
                 return 0;
             }
 
-            if (yPos == worldData.seaLevel)
-            {
-                return 10;
-            }
-
             return 9;
         }
 
@@ -415,16 +404,16 @@ public class ChunkLoader : MonoBehaviour
         }
 
         //Vegetation pass
-        /*if (yPos == terrainHeight && biome.generateVegetation == true)
+        if (yPos == terrainHeight && biome.generateVegetation == true)
         {
-            if (Perlin.GetVegetationNoise(pos2) > biome.vegetationZoneThreshold)
+            if (Perlin.GetVegetationZoneNoise(pos2, offset, biome.vegetationZoneScale) > biome.vegetationZoneThreshold)
             {
-                if (Perlin.GetVegetationNoise(pos2) > biome.vegetationPlacementThreshold)
+                if (Perlin.GetVegetationDensityNoise(pos2, offset, biome.vegetationDensityScale) > biome.vegetationDensityThreshold)
                 {
-                    modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize));
+                    modifications.Enqueue(Structures.GenerateVegetation(biome.vegetationType, pos, biome.minSize, biome.maxSize, offset));
                 }
             }
-        }*/
+        }
 
         return voxelValue;
     }
