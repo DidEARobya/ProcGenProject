@@ -73,13 +73,13 @@ public class Chunk
 
     public void UpdateChunk()
     {
-        while(modifications.Count > 0)
+        while (modifications.Count > 0)
         {
             VoxelMod mod = modifications.Dequeue();
             Vector3 pos = (mod.position -= position);
 
-            voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = mod.id; 
-        }  
+            voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = mod.id;
+        }
 
         ClearMeshData();
 

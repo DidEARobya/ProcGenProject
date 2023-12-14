@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Schema;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public static class Perlin
 {
@@ -62,12 +63,21 @@ public static class Perlin
         return Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
     }
 
-    public static float GetVegetationNoise(Vector2Int position, float offset)
+    public static float GetVegetationZoneNoise(Vector2Int position, float offset, float scale)
     {
         WorldData worldData = WorldManager.instance.worldData;
 
-        float xSample = ((position.x + 0.1f) / worldData.chunkWidth) + 5000 + offset;
-        float ySample = ((position.y + 0.1f) / worldData.chunkWidth) + 5000 + offset;
+        float xSample = (((position.x + 0.1f) / worldData.chunkWidth) * scale) + 5000 + offset;
+        float ySample = (((position.y + 0.1f) / worldData.chunkWidth) * scale) + 5000 + offset;
+
+        return Mathf.PerlinNoise(xSample, ySample);
+    }
+    public static float GetVegetationDensityNoise(Vector2Int position, float offset, float scale)
+    {
+        WorldData worldData = WorldManager.instance.worldData;
+
+        float xSample = (((position.x + 0.1f) / worldData.chunkWidth) * scale) + 2500 + offset;
+        float ySample = (((position.y + 0.1f) / worldData.chunkWidth) * scale) + 2500 + offset;
 
         return Mathf.PerlinNoise(xSample, ySample);
     }

@@ -20,8 +20,8 @@ MonoBehaviour:
   surfaceBlock: 4
   subSurfaceBlock: 4
   vegetationType: 1
-  vegetationZoneThreshold: 0.867
-  vegetationPlacementThreshold: 0.638
+  vegetationZoneThreshold: 0.962
+  vegetationPlacementThreshold: 0.929
   generateVegetation: 1
   minSize: 1
   maxSize: 8

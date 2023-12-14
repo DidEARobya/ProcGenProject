@@ -21,7 +21,7 @@ MonoBehaviour:
   subSurfaceBlock: 2
   vegetationType: 0
   vegetationZoneThreshold: 0.983
-  vegetationPlacementThreshold: 0.95
+  vegetationPlacementThreshold: 0.984
   generateVegetation: 1
   minSize: 5
   maxSize: 12
