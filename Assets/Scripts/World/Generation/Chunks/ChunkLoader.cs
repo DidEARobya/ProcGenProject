@@ -9,7 +9,6 @@ using UnityEngine.XR;
 public class ChunkLoader : MonoBehaviour
 {
     public static ChunkLoader instance;
-    public PoissonDiscSampler sampler;
 
     Transform player;
 
@@ -356,7 +355,7 @@ public class ChunkLoader : MonoBehaviour
 
         float noise = Perlin.GetHeightMapPerlin(pos2, worldData.scale, offset);
 
-        int terrainHeight = Mathf.FloorToInt(60 + Mathf.Abs(noise * 30));
+        int terrainHeight = Mathf.FloorToInt(worldData.terrainHeight + Mathf.Abs(noise * 30));
 
         if (yPos > terrainHeight)
         {

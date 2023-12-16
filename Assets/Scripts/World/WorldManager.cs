@@ -107,7 +107,9 @@ public class WorldData
     public int loadDistance;
     public int viewDistanceInChunks;
 
-    public int seaLevel = 70;
+    public int terrainHeight = 50;
+    public int seaLevel = 65;
+
     public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _loadDistance, int _viewDistance)
     {
         enableThreading = _enableThreading;
@@ -120,7 +122,7 @@ public class WorldData
         seed = _seed;
 
         chunkWidth = _chunkWidth;
-        chunkHeight = _chunkHeight;
+        chunkHeight = 256; // _chunkHeight;
 
         loadDistance = _loadDistance;
         viewDistanceInChunks = _viewDistance;

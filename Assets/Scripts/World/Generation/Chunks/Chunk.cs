@@ -66,7 +66,7 @@ public class Chunk
 
         meshRenderer.materials = materials;
 
-        voxelMap = new int[width, height, height];
+        voxelMap = new int[width, height, width];
 
         chunkLoader.toLoad.Add(this);
     }
