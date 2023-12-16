@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5640193838111246175}
   - component: {fileID: 1425702727256796787}
   - component: {fileID: 4946493918276391158}
+  - component: {fileID: 8756703365345398572}
   m_Layer: 0
   m_Name: WorldManager
   m_TagString: Untagged
@@ -46,11 +47,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 056d9c16055fe354c8f9d0ccadefe6b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  items: []
   player: {fileID: 0}
+  spawnTemp: {x: 0, y: 0, z: 0}
   spawnPosition: {x: 0, y: 0, z: 0}
+  gravity: -13
   blockData:
   - blockName: Air
     isSolid: 0
+    hasVisibleNeighbors: 0
+    farmedBlock: 0
+    displayImage: {fileID: 0}
+    stackSize: 0
+    destroyTime: 0
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -59,6 +68,11 @@ MonoBehaviour:
     rightFaceTexture: 0
   - blockName: Stone
     isSolid: 1
+    hasVisibleNeighbors: 0
+    farmedBlock: 0
+    displayImage: {fileID: 0}
+    stackSize: 0
+    destroyTime: 0
     backFaceTexture: 3
     frontFaceTexture: 3
     topFaceTexture: 3
@@ -67,6 +81,11 @@ MonoBehaviour:
     rightFaceTexture: 3
   - blockName: Dirt
     isSolid: 1
+    hasVisibleNeighbors: 0
+    farmedBlock: 0
+    displayImage: {fileID: 0}
+    stackSize: 0
+    destroyTime: 0
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -75,6 +94,11 @@ MonoBehaviour:
     rightFaceTexture: 0
   - blockName: Grass
     isSolid: 1
+    hasVisibleNeighbors: 0
+    farmedBlock: 0
+    displayImage: {fileID: 0}
+    stackSize: 0
+    destroyTime: 0
     backFaceTexture: 1
     frontFaceTexture: 1
     topFaceTexture: 2
@@ -83,6 +107,11 @@ MonoBehaviour:
     rightFaceTexture: 1
   - blockName: Sand
     isSolid: 1
+    hasVisibleNeighbors: 0
+    farmedBlock: 0
+    displayImage: {fileID: 0}
+    stackSize: 0
+    destroyTime: 0
     backFaceTexture: 4
     frontFaceTexture: 4
     topFaceTexture: 4
@@ -90,14 +119,8 @@ MonoBehaviour:
     leftFaceTexture: 4
     rightFaceTexture: 4
   blockMaterial: {fileID: 2100000, guid: e4b185674e6695045aeb5d64e759e243, type: 2}
-  lacunarity: 0.246
-  persistence: 2
-  octaves: 1
-  seed: 21
-  chunkWidth: 16
-  chunkHeight: 48
-  worldSizeInChunks: 20
-  viewDistanceInChunks: 5
+  transparentBlockMaterial: {fileID: 0}
+  isSpawned: 0
 --- !u!114 &1425702727256796787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,7 +133,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb0608075e45a224683ca01430fb2bb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultBiome: {fileID: 11400000, guid: 424badd99681020498b4e5670a2320b9, type: 2}
+  biomes: []
+  isReady: 0
 --- !u!114 &4946493918276391158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,3 +147,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e588298e195862248a7508bd822f7793, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8756703365345398572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6908138624490976410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4fbac7b29074b94fbcdfc2cfd5ff7be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turtlePrefab: {fileID: 0}
+  lineLength: 0
+  iterations: 0
+  lineMaterial: {fileID: 0}

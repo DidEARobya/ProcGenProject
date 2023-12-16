@@ -16,6 +16,9 @@ public class PlayerController : MonoBehaviour
 
     private PlayerBase playerBase;
 
+    [SerializeField]
+    public L_System lsystem;
+
     private Transform cameraTransform;
     private Vector3 cameraDefaultPos;
     private Vector3 cameraSneakPos;
@@ -296,6 +299,11 @@ public class PlayerController : MonoBehaviour
         if (highlightBlock.gameObject.activeSelf == false)
         {
             return;
+        }
+
+        if(Input.GetKeyUp(KeyCode.L))
+        {
+            lsystem.SpawnLSystem(placeBlockPos);
         }
 
         if (Input.GetMouseButton(0))
