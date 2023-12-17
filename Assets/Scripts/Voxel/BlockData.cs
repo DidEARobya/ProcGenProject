@@ -8,6 +8,7 @@ public class BlockData
 {
     public string blockName;
 
+    public bool isWater;
     public bool isSolid;
     public bool hasVisibleNeighbors;
 

@@ -24,6 +24,8 @@ public class WorldManager : MonoBehaviour
     public Material blockMaterial;
     [SerializeField]
     public Material transparentBlockMaterial;
+    [SerializeField]
+    public Material waterMaterial;
 
     public bool isSpawned;
 
@@ -108,7 +110,7 @@ public class WorldData
     public int viewDistanceInChunks;
 
     public int terrainHeight = 50;
-    public int seaLevel = 65;
+    public int seaLevel = 55;
 
     public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _loadDistance, int _viewDistance)
     {
