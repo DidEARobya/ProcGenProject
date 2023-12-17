@@ -21,7 +21,6 @@ public class L_System : MonoBehaviour
 
     private GameObject treeSystem;
     private GameObject sierpinkskiSystem;
-    private GameObject fractalTreeSystem;
     private GameObject dragonCurveSystem;
 
     [SerializeField]
