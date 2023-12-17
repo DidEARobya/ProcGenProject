@@ -98,7 +98,7 @@ public class WorldData
     public int chunkWidth;
     public int chunkHeight;
 
-    public int worldSizeInChunks = 50;
+    public int worldSizeInChunks = 2000;
     public int worldSizeInVoxels
     {
         get { return worldSizeInChunks * chunkWidth; }
@@ -122,7 +122,7 @@ public class WorldData
         seed = _seed;
 
         chunkWidth = _chunkWidth;
-        chunkHeight = 256; // _chunkHeight;
+        chunkHeight = 256;
 
         loadDistance = _loadDistance;
         viewDistanceInChunks = _viewDistance;

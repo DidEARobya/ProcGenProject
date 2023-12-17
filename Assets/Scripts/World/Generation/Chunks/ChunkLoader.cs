@@ -30,8 +30,11 @@ public class ChunkLoader : MonoBehaviour
     protected int loadDistance;
     protected int viewDistance;
 
+    ChunkData[,] chunkData;
     Chunk[,] chunks;
+
     List<ChunkVector> activeChunks = new List<ChunkVector>();
+    List<ChunkVector> loadedChunks = new List<ChunkVector>();
 
     public ChunkVector currentChunk;
     ChunkVector lastChunk;
@@ -75,6 +78,7 @@ public class ChunkLoader : MonoBehaviour
 
             loadIndex = (viewDistance * 2) * (viewDistance * 2);
 
+            chunkData = new ChunkData[chunkCount, chunkCount];
             chunks = new Chunk[chunkCount, chunkCount];
 
             if (worldData.enableThreading == true)
@@ -143,17 +147,24 @@ public class ChunkLoader : MonoBehaviour
         {
             for (int z = chunksCount - viewDistance; z < chunksCount + viewDistance; z++)
             {
-                ChunkVector vector = new ChunkVector(x, z);
-                chunks[x, z] = new Chunk(vector, chunkWidth, chunkHeight);
+                CreateChunk(x, z);
             }
         }
 
         player.position = WorldManager.instance.spawnPosition;
         lastChunk = currentChunk;
-
-        CheckViewDistance();
     }
+    private void CreateChunk(int x, int z)
+    {
+        ChunkVector vector = new ChunkVector(x, z);
 
+        if(chunkData[x, z] == null)
+        {
+            chunkData[x, z] = new ChunkData(vector, chunkWidth, chunkHeight);
+        }
+
+        chunks[x, z] = new Chunk(chunkData[x, z]);
+    }
     private void UpdateChunks()
     {
         lock (updateThreadLock)
@@ -208,12 +219,21 @@ public class ChunkLoader : MonoBehaviour
     {
         lock(loadThreadLock)
         {
+            bool loadCheck = false;
+
             if (toLoad[0] != null)
             {
-                toLoad[0].PopulateVoxelMap();
-            }
+                loadCheck = toLoad[0].LoadChunk();
 
-            toLoad.RemoveAt(0);
+                if (loadCheck == true)
+                {
+                    toLoad.RemoveAt(0);
+                }
+            }
+            else
+            {
+                toLoad.RemoveAt(0);
+            }
         }
     }
     private void ApplyModifications()
@@ -276,6 +296,9 @@ public class ChunkLoader : MonoBehaviour
         ChunkVector chunkVector = GetChunkVectorFromVector3(player.position);
         lastChunk = currentChunk;
 
+        List<ChunkVector> lastLoaded = new List<ChunkVector>(loadedChunks);
+        loadedChunks.Clear();
+
         for (int x = chunkVector.x - loadDistance; x < chunkVector.x + loadDistance; x++)
         {
             for (int z = chunkVector.z - loadDistance; z < chunkVector.z + loadDistance; z++)
@@ -284,12 +307,37 @@ public class ChunkLoader : MonoBehaviour
 
                 if (IsChunkInWorld(temp))
                 {
-                    if (chunks[x, z] == null)
+                    if (chunkData[x, z] == null)
                     {
-                        chunks[x, z] = new Chunk(temp, chunkWidth, chunkHeight);
+                        CreateChunk(x, z);
+                    }
+                    else
+                    {
+                        if(chunks[x, z] == null)
+                        {
+                            chunks[x, z] = new Chunk(chunkData[x, z]);
+                        }
+                    }
+
+                    loadedChunks.Add(temp);
+
+                    for (int i = 0; i < lastLoaded.Count; i++)
+                    {
+                        if (lastLoaded[i].Equals(temp))
+                        {
+                            lastLoaded.RemoveAt(i);
+                            break;
+                        }
                     }
                 }
             }
+        }
+
+        for (int i = 0; i < lastLoaded.Count; i++)
+        {
+            chunkData[lastLoaded[i].x, lastLoaded[i].z] = chunks[lastLoaded[i].x, lastLoaded[i].z].SaveChunk();
+            chunks[lastLoaded[i].x, lastLoaded[i].z] = null;
+            loadedChunks.Remove(lastLoaded[i]);
         }
     }
     protected void CheckViewDistance()
@@ -332,7 +380,11 @@ public class ChunkLoader : MonoBehaviour
 
         for (int i = 0; i < lastActive.Count; i++)
         {
-            chunks[lastActive[i].x, lastActive[i].z].isActive = false;
+            if (chunks[lastActive[i].x, lastActive[i].z] != null)
+            {
+                chunks[lastActive[i].x, lastActive[i].z].isActive = false;
+            }
+
             activeChunks.Remove(lastActive[i]);
         }
     }
