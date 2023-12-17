@@ -27,10 +27,11 @@ public class Chunk
 
     int vIndex = 0;
 
-    Material[] materials = new Material[2];
+    Material[] materials = new Material[3];
     private List<Vector3> verts = new List<Vector3>();
     private List<int> tris = new List<int>();
     private List<int> transparentTris = new List<int>();
+    private List<int> waterTris = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
     private List<Vector3> normals = new List<Vector3>();
 
@@ -65,6 +66,7 @@ public class Chunk
 
         materials[0] = worldManager.blockMaterial;
         materials[1] = worldManager.transparentBlockMaterial;
+        materials[2] = worldManager.waterMaterial;
 
         meshRenderer.materials = materials;
 
@@ -139,7 +141,7 @@ public class Chunk
         return WorldManager.instance.blockData[voxelMap[x, y, z]].hasVisibleNeighbors;
     }
 
-    protected bool CheckVoxelIsSolid(Vector3Int pos)
+    protected bool CheckVoxelIsWater(Vector3Int pos)
     {
         int x = pos.x;
         int y = pos.y;
@@ -147,10 +149,10 @@ public class Chunk
 
         if (isVoxelInChunk(x, y, z) == false)
         {
-            return chunkLoader.CheckForVoxel(pos + position);
+            return chunkLoader.CheckForWaterVoxel(pos + position);
         }
 
-        return WorldManager.instance.blockData[voxelMap[x, y, z]].isSolid;
+        return WorldManager.instance.blockData[voxelMap[x, y, z]].isWater;
     }
     public int GetVoxelFromVector3(Vector3Int pos)
     {
@@ -179,36 +181,56 @@ public class Chunk
 
         for (int i = 0; i < 6; i++)
         {
-            if (CheckVoxelIsSolid(pos + VoxelData.faceChecks[i]) == false && CheckIfVoxelHasVisibleNeighbors(pos + VoxelData.faceChecks[i]) == true)
+            if (CheckIfVoxelHasVisibleNeighbors(pos + VoxelData.faceChecks[i]) == true)
             {
-                for (int u = 0; u < 4; u++)
+                if(blockID == 9 && CheckVoxelIsWater(pos + VoxelData.faceChecks[i]) == true)
                 {
-                    verts.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[i, u]]);
-                    normals.Add(VoxelData.faceChecks[i]);
-                }
-
-                AddTexture(WorldManager.instance.blockData[blockID].GetTextureID(i));
-
-                if (hasVisibleNeighbors == false)
-                {
-                    tris.Add(vIndex);
-                    tris.Add(vIndex + 1);
-                    tris.Add(vIndex + 2);
-                    tris.Add(vIndex + 2);
-                    tris.Add(vIndex + 1);
-                    tris.Add(vIndex + 3);
+                    
                 }
                 else
                 {
-                    transparentTris.Add(vIndex);
-                    transparentTris.Add(vIndex + 1);
-                    transparentTris.Add(vIndex + 2);
-                    transparentTris.Add(vIndex + 2);
-                    transparentTris.Add(vIndex + 1);
-                    transparentTris.Add(vIndex + 3);
-                }
+                    for (int u = 0; u < 4; u++)
+                    {
+                        verts.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[i, u]]);
+                        normals.Add(VoxelData.faceChecks[i]);
+                    }
 
-                vIndex += 4;
+                    AddTexture(WorldManager.instance.blockData[blockID].GetTextureID(i));
+
+
+                    if (hasVisibleNeighbors == false)
+                    {
+                        tris.Add(vIndex);
+                        tris.Add(vIndex + 1);
+                        tris.Add(vIndex + 2);
+                        tris.Add(vIndex + 2);
+                        tris.Add(vIndex + 1);
+                        tris.Add(vIndex + 3);
+                    }
+                    else
+                    {
+                        if (blockID == 9)
+                        {
+                            waterTris.Add(vIndex);
+                            waterTris.Add(vIndex + 1);
+                            waterTris.Add(vIndex + 2);
+                            waterTris.Add(vIndex + 2);
+                            waterTris.Add(vIndex + 1);
+                            waterTris.Add(vIndex + 3);
+                        }
+                        else
+                        {
+                            transparentTris.Add(vIndex);
+                            transparentTris.Add(vIndex + 1);
+                            transparentTris.Add(vIndex + 2);
+                            transparentTris.Add(vIndex + 2);
+                            transparentTris.Add(vIndex + 1);
+                            transparentTris.Add(vIndex + 3);
+                        }
+                    }
+
+                    vIndex += 4;
+                }
             }
         }
     }
@@ -318,9 +340,10 @@ public class Chunk
 
         mesh.vertices = verts.ToArray();
 
-        mesh.subMeshCount = 2;
+        mesh.subMeshCount = 3;
         mesh.SetTriangles(tris.ToArray(), 0);
         mesh.SetTriangles(transparentTris.ToArray(), 1);
+        mesh.SetTriangles(waterTris.ToArray(), 2);
 
         mesh.uv = uvs.ToArray();
         mesh.normals = normals.ToArray();
@@ -339,6 +362,7 @@ public class Chunk
         verts.Clear();
         tris.Clear();
         transparentTris.Clear();
+        waterTris.Clear();
         uvs.Clear();
         normals.Clear();
     }

@@ -501,6 +501,23 @@ public class ChunkLoader : MonoBehaviour
 
         return worldManager.blockData[GetVoxel(pos)].hasVisibleNeighbors;
     }
+    public bool CheckForWaterVoxel(Vector3Int pos)
+    {
+        ChunkVector vector = new ChunkVector(pos);
+
+        if (IsVoxelInWorld(pos) == false)
+        {
+            return false;
+        }
+
+        if (chunks[vector.x, vector.z] != null && chunks[vector.x, vector.z].isEditable == true)
+        {
+            return worldManager.blockData[chunks[vector.x, vector.z].GetVoxelFromVector3(pos)].isWater;
+        }
+
+        return worldManager.blockData[GetVoxel(pos)].isWater;
+    }
+
     public int GetVoxelFromVector3Int(Vector3Int pos)
     {
         Chunk temp = GetChunkFromVector3(pos);
