@@ -58,12 +58,30 @@ public class WorldSettings : MonoBehaviour
     public TextMeshProUGUI perlinOctavesText;
     private void Awake()
     {
-        if(instance == null)
+        if (instance == null)
         {
             instance = this;
         }
+        else
+        {
+            ResetValues();
+        }
 
         DontDestroyOnLoad(gameObject);
+    }
+
+    void ResetValues()
+    {
+        enableThreading = false;
+
+        scale = 0.1f;
+        lacunarity = 2.0f;
+        persistence = 0.1f;
+        octaves = 1;
+        seed = 1;
+
+        loadDistance = 5;
+        viewDistanceInChunks = 1;
     }
 
     public void ToggleThreading()

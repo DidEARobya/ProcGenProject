@@ -20,6 +20,7 @@ public class PauseMenu : MonoBehaviour
 
     public void QuitGame()
     {
+        Destroy(WorldSettings.instance.gameObject);
         SceneManager.LoadScene(0);
     }
 }
