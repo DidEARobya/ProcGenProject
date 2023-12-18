@@ -46,8 +46,6 @@ public class WorldManager : MonoBehaviour
                     worldSettings.persistence,
                     worldSettings.octaves,
                     worldSettings.seed,
-                    worldSettings.chunkWidth,
-                    worldSettings.chunkHeight,
                     worldSettings.loadDistance,
                     worldSettings.viewDistanceInChunks);
             }
@@ -112,7 +110,7 @@ public class WorldData
     public int terrainHeight = 50;
     public int seaLevel = 55;
 
-    public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _chunkWidth, int _chunkHeight, int _loadDistance, int _viewDistance)
+    public WorldData(bool _enableThreading, float _scale, float _lacunarity, float _persistence, int _octaves, int _seed, int _loadDistance, int _viewDistance)
     {
         enableThreading = _enableThreading;
 
@@ -123,7 +121,7 @@ public class WorldData
 
         seed = _seed;
 
-        chunkWidth = _chunkWidth;
+        chunkWidth = 16;
         chunkHeight = 256;
 
         loadDistance = _loadDistance;
