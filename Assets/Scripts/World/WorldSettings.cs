@@ -19,9 +19,6 @@ public class WorldSettings : MonoBehaviour
     public int octaves = 4;
     public int seed = 32;
 
-    public int chunkWidth = 16;
-    public int chunkHeight = 64;
-
     public int loadDistance = 5;
     public int viewDistanceInChunks = 1;
 
@@ -29,16 +26,6 @@ public class WorldSettings : MonoBehaviour
     public Slider seedSlider;
     [SerializeField]
     public TextMeshProUGUI seedText;
-
-    [SerializeField]
-    public Slider chunkWidthSlider;
-    [SerializeField]
-    public TextMeshProUGUI chunkWidthText;
-
-    [SerializeField]
-    public Slider chunkHeightSlider;
-    [SerializeField]
-    public TextMeshProUGUI chunkHeightText;
 
     [SerializeField]
     public Slider viewDistanceSlider;
@@ -87,16 +74,6 @@ public class WorldSettings : MonoBehaviour
     {
         seed = Mathf.FloorToInt(seedSlider.value);
         seedText.text = "Seed: " + seed.ToString();
-    }
-    public void SetChunkWidth()
-    {
-        chunkWidth = Mathf.FloorToInt(chunkWidthSlider.value);
-        chunkWidthText.text = "Chunk Width: " + chunkWidth.ToString();
-    }
-    public void SetChunkHeight()
-    {
-        chunkHeight = Mathf.FloorToInt(chunkHeightSlider.value);
-        chunkHeightText.text = "Chunk Height: " + chunkHeight.ToString();
     }
     public void SetViewDistance()
     {

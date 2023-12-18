@@ -72,6 +72,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _WaterTexture:
+        m_Texture: {fileID: 2800000, guid: abee9c55cf023a8429b9e3911555ae35, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _BUILTIN_QueueControl: 0
@@ -96,8 +100,9 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColour: {r: 0.031817384, g: 0.1387775, b: 0.5188679, a: 0}
+    - _BaseColour: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _RippleColour: {r: 0, g: 0.09830665, b: 2, a: 0}
+    - _RippleColour: {r: 0, g: 0.06908385, b: 1.319508, a: 0}
+    - _Shade: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
