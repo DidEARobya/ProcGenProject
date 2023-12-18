@@ -79,6 +79,8 @@ public class WorldSettings : MonoBehaviour
     {
         viewDistanceInChunks = Mathf.FloorToInt(viewDistanceSlider.value);
         viewDistanceText.text = "View Distance: " + viewDistanceInChunks.ToString();
+
+        loadDistanceSlider.minValue = viewDistanceInChunks;
     }
     public void SetLoadDistance()
     {
@@ -108,5 +110,9 @@ public class WorldSettings : MonoBehaviour
     public void GenerateWorld()
     {
         SceneManager.LoadScene(1);
+    }
+    public void Quit()
+    {
+        Application.Quit();
     }
 }

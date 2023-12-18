@@ -207,6 +207,14 @@ public class ChunkLoader : MonoBehaviour
             }
         }
     }
+    private void OnApplicationQuit()
+    {
+        if (worldData.enableThreading == true)
+        {
+            chunkUpdateThread.Abort();
+            chunkLoadThread.Abort();
+        }
+    }
     private void OnDisable()
     {
         if (worldData.enableThreading == true)

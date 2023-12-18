@@ -26,6 +26,9 @@ public class PlayerController : MonoBehaviour
     private WorldManager worldManager;
     private ChunkLoader chunkLoader;
 
+    [SerializeField]
+    public GameObject pauseMenu;
+
     [HideInInspector]
     public Toolbar toolbar;
 
@@ -251,10 +254,17 @@ public class PlayerController : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.Escape))
         {
-            Application.Quit();
+            if(isSpawned == false)
+            {
+                return;
+            }
+
+            pauseMenu.SetActive(true);
+            Cursor.lockState = CursorLockMode.Confined;
+            Time.timeScale = 0;
         }
 
-        if(isSpawned == false)
+        if(isSpawned == false || pauseMenu.activeInHierarchy == true)
         {
             return;
         }
