@@ -109,6 +109,7 @@ public class WorldSettings : MonoBehaviour
     }
     public void GenerateWorld()
     {
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene(1);
     }
     public void Quit()

@@ -696,7 +696,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.size
-      value: 10
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: transparentBlockMaterial
@@ -729,6 +729,10 @@ PrefabInstance:
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].isSolid
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: blockData.Array.data[10].isWater
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[1].stackSize
@@ -788,7 +792,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].blockName
-      value: WaterSurface
+      value: ForestDirt
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: blockData.Array.data[10].stackSize
+      value: 64
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[1].destroyTime
@@ -836,7 +844,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].destroyTime
-      value: 999999
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: blockData.Array.data[10].farmedBlock
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[1].displayImage
@@ -879,6 +891,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
+      propertyPath: blockData.Array.data[10].displayImage
+      value: 
+      objectReference: {fileID: 21300000, guid: b7129dbc3cd812143b5d1ac1a8a483d8, type: 3}
+    - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[6].isTransparent
       value: 1
       objectReference: {fileID: 0}
@@ -908,7 +924,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].topFaceTexture
-      value: 1
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[5].backFaceTexture
@@ -952,11 +968,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].backFaceTexture
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].leftFaceTexture
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[5].frontFaceTexture
@@ -1000,11 +1016,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].frontFaceTexture
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].rightFaceTexture
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[5].bottomFaceTexture
@@ -1020,7 +1036,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[8].bottomFaceTexture
-      value: 0
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[9].bottomFaceTexture
@@ -1028,7 +1044,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].bottomFaceTexture
-      value: 1
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[0].hasVisibleNeighbors
@@ -1044,7 +1060,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5640193838111246175, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: blockData.Array.data[10].hasVisibleNeighbors
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6908138624490976410, guid: 6e46325e6b2db224aa05c3c3b67a682b, type: 3}
       propertyPath: m_Name
