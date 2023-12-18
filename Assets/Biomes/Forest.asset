@@ -18,7 +18,7 @@ MonoBehaviour:
   heightMin: 0.2
   heightMax: 1
   surfaceBlock: 8
-  subSurfaceBlock: 2
+  subSurfaceBlock: 10
   vegetationType: 0
   vegetationZoneThreshold: 0.1
   vegetationZoneScale: 0.01
